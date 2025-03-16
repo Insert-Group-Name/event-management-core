@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\EventController;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -10,15 +11,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Notifications test page
-    Route::get('/notifications', function () {
-        return Inertia::render('events/notifications');
-    })->name('events.notifications');
-    
-    // Echo debug page
-    Route::get('/echo-debug', function () {
-        return Inertia::render('events/echo-debug');
-    })->name('events.echo-debug');
+    Route::get('/', function () {
+        return Redirect::route('events.index');
+    })->name('home');
     
     // Event routes
     Route::prefix('events')->group(function () {
