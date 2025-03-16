@@ -25,7 +25,7 @@ class EventController extends Controller
         // Enable query logging
         DB::enableQueryLog();
         
-        $events = Event::select('id', 'name', 'description', 'start_date', 'end_date', 'user_id', 'created_at')
+        $events = Event::select('id', 'name', 'description', 'date', 'end_date', 'user_id', 'created_at')
             ->with('user:id,name')
             ->latest('created_at')
             ->paginate(10);
@@ -56,13 +56,15 @@ class EventController extends Controller
             'description' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'location' => 'nullable|string|max:255',
         ]);
 
         $event = new Event();
         $event->name = $validated['name'];
         $event->description = $validated['description'];
-        $event->start_date = $validated['start_date'];
+        $event->date = $validated['start_date'];
         $event->end_date = $validated['end_date'];
+        $event->location = $validated['location'] ?? null;
         $event->user_id = Auth::id();
         $event->save();
 
@@ -94,7 +96,7 @@ class EventController extends Controller
         $agenda = [
             'id' => (string)$event->id,
             'title' => $event->name,
-            'date' => $event->start_date,
+            'date' => $event->date,
             'activities' => $event->agendaItems->map(function ($item) {
                 // For demo purposes, create some example slides
                 $slides = $this->generateExampleSlides($item);
@@ -244,15 +246,17 @@ class EventController extends Controller
             'description' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'location' => 'nullable|string|max:255',
         ]);
 
         $event->name = $validated['name'];
         $event->description = $validated['description'];
-        $event->start_date = $validated['start_date'];
+        $event->date = $validated['start_date'];
         $event->end_date = $validated['end_date'];
+        $event->location = $validated['location'] ?? $event->location;
         $event->save();
 
-        return redirect()->route('events.show', $event)
+        return redirect()->route('events.index')
             ->with('message', 'Event updated successfully.');
     }
 
