@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { Link, router, usePage } from "@inertiajs/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -7,11 +7,11 @@ import { Plus, Calendar, Clock, MapPin, Users, ChevronRight, ArrowLeft } from "l
 import { format } from "date-fns"
 import ActivityBuilder from "@/components/agenda/activity-builder"
 import { type AgendaItem } from "@/types/agenda-item"
-import { type CreateSlideData, type Slide } from "@/types/agenda-slide"
+import { type CreateSlideData, type Slide, type SlideType } from "@/types/agenda-slide"
 
 export default function AgendaBuilder() {
-  const { eventId } = useParams<{ eventId: string }>()
-  const navigate = useNavigate()
+  const { props } = usePage<{ eventId: string }>()
+  const eventId = props.eventId
   const [isLoading, setIsLoading] = useState(true)
   const [event, setEvent] = useState<any>(null)
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([])
@@ -115,14 +115,21 @@ export default function AgendaBuilder() {
         )
         
         // Update slides
-        setSlides(prev => ({
-          ...prev,
-          [activityData.id]: slidesData.map((slide, index) => ({
+        const typedSlides = slidesData.map((slide, index) => {
+          const baseSlide = {
             ...slide,
-            id: prev[activityData.id]?.[index]?.id || Math.floor(Math.random() * 1000) + 100,
+            id: slides[activityData.id]?.[index]?.id || Math.floor(Math.random() * 1000) + 100,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          })) as Slide[]
+          };
+          
+          // Ensure the content has the right shape based on slide_type
+          return baseSlide as unknown as Slide;
+        });
+        
+        setSlides(prev => ({
+          ...prev,
+          [activityData.id]: typedSlides
         }))
       } else {
         // Create new activity
@@ -137,15 +144,22 @@ export default function AgendaBuilder() {
         setAgendaItems(prev => [...prev, newActivity])
         
         // Create slides
-        setSlides(prev => ({
-          ...prev,
-          [newId]: slidesData.map((slide, index) => ({
+        const typedSlides = slidesData.map((slide) => {
+          const baseSlide = {
             ...slide,
             id: Math.floor(Math.random() * 1000) + 100,
             activity_id: newId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          })) as Slide[]
+          };
+          
+          // Ensure the content has the right shape based on slide_type
+          return baseSlide as unknown as Slide;
+        });
+        
+        setSlides(prev => ({
+          ...prev,
+          [newId]: typedSlides
         }))
       }
       
@@ -206,7 +220,7 @@ export default function AgendaBuilder() {
           <Button 
             variant="ghost" 
             className="mb-2"
-            onClick={() => navigate(`/events/${eventId}`)}
+            onClick={() => router.visit(`/events/${eventId}`)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Event
           </Button>
