@@ -41,10 +41,19 @@ export default function EventStory({
   const availableActivities = useMemo(() => {
     return agenda.activities
       .filter((activity) => {
+        // Ensure startTime is a Date object
+        const startTime = activity.startTime instanceof Date 
+          ? activity.startTime 
+          : new Date(activity.startTime)
+        
         // Include activities that have started (or are about to start within 5 minutes)
-        return activity.startTime <= new Date(currentTime.getTime() + 5 * 60 * 1000)
+        return startTime <= new Date(currentTime.getTime() + 5 * 60 * 1000)
       })
-      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+      .sort((a, b) => {
+        const aStartTime = a.startTime instanceof Date ? a.startTime : new Date(a.startTime)
+        const bStartTime = b.startTime instanceof Date ? b.startTime : new Date(b.startTime)
+        return aStartTime.getTime() - bStartTime.getTime()
+      })
   }, [agenda.activities, currentTime])
 
   // Get the current activity
@@ -226,6 +235,15 @@ export default function EventStory({
     }
   }
 
+  // Add a useEffect to handle time change and logging for debugging
+  useEffect(() => {
+    console.log("Current time:", currentTime)
+    console.log("Available activities:", availableActivities.length)
+    if (availableActivities.length > 0) {
+      console.log("First activity start time:", availableActivities[0].startTime)
+    }
+  }, [currentTime, availableActivities])
+
   // Event Info Overlay
   const renderEventInfo = () => {
     return (
@@ -264,7 +282,10 @@ export default function EventStory({
                           className="text-xs border-white/20 text-white"
                           onClick={() => {
                             // Set time to this activity and close overlay
-                            setCurrentTime(new Date(activity.startTime.getTime() + 60 * 1000)) // 1 minute after start
+                            const startTime = activity.startTime instanceof Date 
+                              ? activity.startTime 
+                              : new Date(activity.startTime)
+                            setCurrentTime(new Date(startTime.getTime() + 60 * 1000)) // 1 minute after start
                             setShowEventInfo(false)
                           }}
                         >
@@ -274,7 +295,13 @@ export default function EventStory({
                       <div className="flex justify-between text-xs text-white/70 mt-2">
                         <span>{activity.location}</span>
                         <span>
-                          {format(activity.startTime, "h:mm a")} - {format(activity.endTime, "h:mm a")}
+                          {format(
+                            activity.startTime instanceof Date ? activity.startTime : new Date(activity.startTime), 
+                            "h:mm a"
+                          )} - {format(
+                            activity.endTime instanceof Date ? activity.endTime : new Date(activity.endTime), 
+                            "h:mm a"
+                          )}
                         </span>
                       </div>
                     </CardContent>
@@ -487,7 +514,10 @@ export default function EventStory({
               setCurrentSlideIndex(0)
             }}
           >
-            {format(activity.startTime, "h:mm")} - {activity.title}
+            {format(
+              activity.startTime instanceof Date ? activity.startTime : new Date(activity.startTime), 
+              "h:mm"
+            )} - {activity.title}
           </Button>
         ))}
       </div>
