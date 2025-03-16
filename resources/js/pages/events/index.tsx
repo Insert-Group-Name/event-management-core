@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Head } from '@inertiajs/react';
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -20,50 +19,52 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Mock data for UI development
-const mockEvents = [
-    {
-        id: 1,
-        title: 'Tech Conference 2024',
-        description: 'Annual technology conference with industry leaders',
-        date: '2024-06-15T09:00:00',
-        location: 'Convention Center, San Francisco',
-        created_at: '2024-01-15T00:00:00',
-        updated_at: '2024-01-15T00:00:00',
-    },
-    {
-        id: 2,
-        title: 'Product Launch Event',
-        description: 'Launching our new product with demos and presentations',
-        date: '2024-07-20T18:30:00',
-        location: 'Main Auditorium, New York',
-        created_at: '2024-02-10T00:00:00',
-        updated_at: '2024-02-10T00:00:00',
-    },
-    {
-        id: 3,
-        title: 'Hackathon 2024',
-        description: '48-hour coding challenge for developers',
-        date: '2024-08-05T10:00:00',
-        location: 'Tech Hub, Austin',
-        created_at: '2024-03-05T00:00:00',
-        updated_at: '2024-03-05T00:00:00',
-    },
-];
+interface Event {
+    id: number;
+    name: string;
+    description: string;
+    start_date: string;
+    end_date: string;
+    created_at: string;
+    updated_at: string;
+}
 
-export default function Index() {
-    const [events, setEvents] = useState(mockEvents);
+interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    from: number;
+    last_page: number;
+    per_page: number;
+    to: number;
+    total: number;
+    links: {
+        url: string | null;
+        label: string;
+        active: boolean;
+    }[];
+}
+
+interface Props {
+    events: PaginatedData<Event>;
+}
+
+export default function Index({ events }: Props) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = (id: number) => {
         if (!confirm('Are you sure you want to delete this event?')) return;
 
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            setEvents(events.filter(event => event.id !== id));
-            setIsDeleting(false);
-        }, 500);
+        router.delete(`/events/${id}`, {
+            onFinish: () => setIsDeleting(false),
+        });
+    };
+
+    const handlePageChange = (page: number) => {
+        router.get('/events', { page }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     return (
@@ -81,14 +82,14 @@ export default function Index() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Title</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Location</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Start Date</TableHead>
+                                <TableHead>End Date</TableHead>
                                 <TableHead className="w-[100px]">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {events.map((event) => (
+                            {events.data.map((event) => (
                                 <TableRow key={event.id}>
                                     <TableCell>
                                         <Button 
@@ -96,11 +97,11 @@ export default function Index() {
                                             className="p-0 h-auto text-left font-medium"
                                             onClick={() => router.visit(`/events/${event.id}`)}
                                         >
-                                            {event.title}
+                                            {event.name}
                                         </Button>
                                     </TableCell>
-                                    <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                                    <TableCell>{event.location}</TableCell>
+                                    <TableCell>{new Date(event.start_date).toLocaleDateString()}</TableCell>
+                                    <TableCell>{new Date(event.end_date).toLocaleDateString()}</TableCell>
                                     <TableCell>
                                         <div className="flex gap-2">
                                             <Button
@@ -122,7 +123,7 @@ export default function Index() {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {events.length === 0 && (
+                            {events.data.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={4} className="text-center">
                                         No events found.
@@ -132,6 +133,26 @@ export default function Index() {
                         </TableBody>
                     </Table>
                 </div>
+
+                {events.last_page > 1 && (
+                    <div className="flex justify-center gap-2 mt-4">
+                        {events.links.filter(link => link.url !== null).map((link, i) => (
+                            <Button
+                                key={i}
+                                variant={link.active ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(link.label === "&laquo; Previous" 
+                                    ? events.current_page - 1 
+                                    : link.label === "Next &raquo;" 
+                                        ? events.current_page + 1
+                                        : parseInt(link.label))}
+                                disabled={link.url === null}
+                            >
+                                <span dangerouslySetInnerHTML={{ __html: link.label }}></span>
+                            </Button>
+                        ))}
+                    </div>
+                )}
             </div>
         </AppLayout>
     );
