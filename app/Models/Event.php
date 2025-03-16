@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Event extends Model
 {
@@ -62,8 +61,16 @@ class Event extends Model
     /**
      * Get the poll associated with the event.
      */
-    public function poll(): HasOne
+    public function polls(): HasMany
     {
-        return $this->hasOne(Poll::class);
+        return $this->hasMany(Poll::class);
+    }
+
+    /**
+     * Get the agenda items for the event.
+     */
+    public function agendaItems(): HasMany
+    {
+        return $this->hasMany(AgendaItem::class);
     }
 }
