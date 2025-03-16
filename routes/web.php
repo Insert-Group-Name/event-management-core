@@ -31,6 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return Inertia::render('dashboard');
             })->name('dashboard');
 
+            // Story View route
+            Route::get('/story', 'storyView')->name('story');
+
             // Agenda Routes
             Route::prefix('agenda')->controller(AgendaController::class)->name('agenda.')->group(function () {
                 Route::get('/', 'index')->name('index');

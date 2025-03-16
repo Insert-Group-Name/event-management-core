@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type Event } from '@/types/event';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { Play } from "lucide-react";
 
 interface Props {
     event: Event;
@@ -36,6 +37,10 @@ export default function Show({ event }: Props) {
         });
     };
 
+    const handleStoryView = () => {
+        router.visit(`/events/${event.id}/story`);
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={event.name} />
@@ -43,6 +48,10 @@ export default function Show({ event }: Props) {
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-semibold">{event.name}</h1>
                     <div className="flex gap-2">
+                        <Button onClick={handleStoryView} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                            <Play className="mr-2 h-4 w-4" /> 
+                            Story View
+                        </Button>
                         <Button variant="outline" onClick={handleEdit}>
                             Edit
                         </Button>

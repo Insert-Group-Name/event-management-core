@@ -81,6 +81,150 @@ class EventController extends Controller
     }
 
     /**
+     * Display the event in story format.
+     */
+    public function storyView(Event $event): Response
+    {
+        // Load the event with its agenda items and associated data
+        $event->load(['agendaItems' => function ($query) {
+            $query->orderBy('start_date');
+        }]);
+
+        // Transform the data into the format expected by the story view
+        $agenda = [
+            'id' => (string)$event->id,
+            'title' => $event->name,
+            'date' => $event->start_date,
+            'activities' => $event->agendaItems->map(function ($item) {
+                // For demo purposes, create some example slides
+                $slides = $this->generateExampleSlides($item);
+                
+                return [
+                    'id' => (string)$item->id,
+                    'title' => $item->title,
+                    'description' => $item->description ?? 'No description available',
+                    'startTime' => $item->start_date,
+                    'endTime' => $item->end_date,
+                    'type' => $item->type ?? 'session',
+                    'location' => $item->location ?? 'Main Hall',
+                    'slides' => $slides,
+                    'speakers' => $this->getExampleSpeakers($item),
+                ];
+            }),
+        ];
+
+        return Inertia::render('stories/index', [
+            'event' => [
+                'id' => $event->id,
+                'title' => $event->name,
+                'description' => $event->description,
+                'agenda' => $agenda,
+            ],
+        ]);
+    }
+
+    /**
+     * Generate example slides for demo purposes.
+     */
+    private function generateExampleSlides($item): array
+    {
+        // These are example slides for demonstration
+        $slideTypes = ['poll', 'quiz', 'qa', 'rating', 'checkin', 'selfie', 'speaker'];
+        $slides = [];
+        
+        // Add 2-3 random slides per agenda item
+        $numSlides = rand(2, 3);
+        for ($i = 0; $i < $numSlides; $i++) {
+            $type = $slideTypes[array_rand($slideTypes)];
+            $content = $this->getSlideContent($type, $item);
+            
+            $slides[] = [
+                'id' => uniqid(),
+                'type' => $type,
+                'content' => $content,
+                'duration' => rand(10, 30), // 10-30 seconds per slide
+            ];
+        }
+        
+        return $slides;
+    }
+
+    /**
+     * Get content for a slide based on its type.
+     */
+    private function getSlideContent($type, $item): array
+    {
+        switch ($type) {
+            case 'poll':
+                return [
+                    'question' => 'What are you most excited about in this session?',
+                    'options' => [
+                        ['id' => '1', 'text' => 'Technical content'],
+                        ['id' => '2', 'text' => 'Networking opportunities'],
+                        ['id' => '3', 'text' => 'Learning new skills'],
+                        ['id' => '4', 'text' => 'Interactive elements'],
+                    ],
+                ];
+            case 'quiz':
+                return [
+                    'question' => 'What technology is our event platform built with?',
+                    'options' => [
+                        ['id' => '1', 'text' => 'React & Laravel'],
+                        ['id' => '2', 'text' => 'Angular & Django'],
+                        ['id' => '3', 'text' => 'Vue & Express'],
+                        ['id' => '4', 'text' => 'Svelte & Flask'],
+                    ],
+                    'correctAnswer' => '1',
+                ];
+            case 'qa':
+                return [
+                    'question' => 'Do you have any questions for the presenter?',
+                ];
+            case 'rating':
+                return [
+                    'question' => 'How would you rate this session so far?',
+                    'maxRating' => 5,
+                ];
+            case 'checkin':
+                return [
+                    'location' => $item->location ?? 'Main Hall',
+                ];
+            case 'selfie':
+                return [
+                    'prompt' => 'Take a selfie with other attendees!',
+                ];
+            case 'speaker':
+                return [
+                    'speakerId' => 'speaker1',
+                ];
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * Get example speakers for demo purposes.
+     */
+    private function getExampleSpeakers($item): array
+    {
+        // Example speakers
+        return [
+            [
+                'id' => 'speaker1',
+                'name' => 'Jane Smith',
+                'title' => 'Lead Developer',
+                'company' => 'Tech Innovations',
+                'bio' => 'Jane is a seasoned developer with 10+ years of experience in web applications.',
+                'photoUrl' => 'https://i.pravatar.cc/150?img=5',
+                'socials' => [
+                    'twitter' => 'janesmith',
+                    'linkedin' => 'janesmith',
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Event $event): Response
