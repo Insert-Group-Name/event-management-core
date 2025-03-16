@@ -20,6 +20,8 @@ export interface NavItem {
     href: string;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    routeName?: string;
+    params?: Record<string, any>;
 }
 
 export interface SharedData {

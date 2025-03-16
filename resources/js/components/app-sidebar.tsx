@@ -10,7 +10,14 @@ import AppLogo from './app-logo';
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        routeName: 'event.dashboard',
+        href: '/events/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Agenda',
+        routeName: 'event.agenda.index',
+        href: '/events/agenda',
         icon: LayoutGrid,
     },
     {
