@@ -261,6 +261,29 @@ class EventController extends Controller
     }
 
     /**
+     * Display the event in attendee view.
+     */
+    public function attendeeView(Event $event): Response
+    {
+        // Load the event with its agenda items and associated data
+        $event->load(['agendaItems' => function ($query) {
+            $query->orderBy('start_date');
+        }]);
+
+        // Transform the data into the format expected by the attendee view
+        return Inertia::render('events/public-view', [
+            'event' => [
+                'id' => $event->id,
+                'name' => $event->name,
+                'description' => $event->description,
+                'start_date' => $event->date,
+                'end_date' => $event->end_date,
+                'location' => $event->location ?? 'TBD',
+            ],
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Event $event): RedirectResponse

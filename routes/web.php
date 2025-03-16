@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             // Story View route
             Route::get('/story', 'storyView')->name('story');
+            
+            // Attendee View route
+            Route::get('/attendee', 'attendeeView')->name('attendee');
 
             // Agenda Routes
             Route::prefix('agenda')->controller(AgendaController::class)->name('agenda.')->group(function () {
