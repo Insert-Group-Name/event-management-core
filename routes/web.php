@@ -10,17 +10,17 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
-
     Route::prefix('events')->controller(EventController::class)->group(function () {
         Route::get('/', 'index');
 
-        Route::prefix('/{event}')->scopeBindings()->group(function () {
+        Route::prefix('/{event}')->name('event.')->scopeBindings()->group(function () {
+            Route::get('dashboard', function () {
+                return Inertia::render('dashboard');
+            })->name('dashboard');
+
             // Agenda Routes
-            Route::prefix('agenda')->controller(AgendaController::class)->group(function () {
-                Route::get('/', 'index');
+            Route::prefix('agenda')->controller(AgendaController::class)->name('agenda.')->group(function () {
+                Route::get('/', 'index')->name('index');
             });
         });
     });
