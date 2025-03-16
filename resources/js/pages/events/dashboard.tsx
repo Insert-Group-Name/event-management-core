@@ -67,10 +67,6 @@ export default function Dashboard({
   
   const breadcrumbs: BreadcrumbItem[] = [
     {
-      title: 'Events',
-      href: '/events',
-    },
-    {
       title: event.name,
       href: `/events/${event.id}`,
     },
@@ -319,8 +315,8 @@ export default function Dashboard({
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`${event.name} Dashboard`} />
-      <div className="container mx-auto py-4">
-        <div className="flex flex-col space-y-4">
+      <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <div className="flex h-full flex-1 flex-col rounded-xl space-y-4">
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>

@@ -10,10 +10,10 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Add a global dashboard route
-    Route::get('/dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    // // Add a global dashboard route
+    // Route::get('/dashboard', function () {
+    //     return Inertia::render('dashboard');
+    // })->name('dashboard');
     
     // Event routes
     Route::prefix('events')->group(function () {

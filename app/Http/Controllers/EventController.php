@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -75,11 +76,9 @@ class EventController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Event $event): Response
+    public function show(Event $event): RedirectResponse
     {
-        return Inertia::render('events/show', [
-            'event' => $event
-        ]);
+        return Redirect::route('event.dashboard', ['event' => $event->id]);
     }
 
     /**

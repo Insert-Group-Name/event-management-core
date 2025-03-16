@@ -52,7 +52,7 @@ export default function Index({ event, agendaItems }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <Head title={`Agenda - ${event.name}`} />
-                <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+                <div className="flex h-full flex-1 flex-col gap-4 rounded-xl">
                     <div className="flex justify-between items-center mb-6">
                         <h1 className="text-2xl font-semibold">Agenda for {event.name}</h1>
                         <Button onClick={() => router.visit(`/events/${event.id}/agenda/create`)}>
