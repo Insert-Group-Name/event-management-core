@@ -31,8 +31,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Event-specific routes
         Route::prefix('/{event}')->name('event.')->group(function () {
             // Dashboard route
-            Route::get('/dashboard', function () {
-                return Inertia::render('dashboard');
+            Route::get('/dashboard', function ($event) {
+                $eventModel = \App\Models\Event::findOrFail($event);
+                return Inertia::render('events/dashboard', [
+                    'event' => $eventModel
+                ]);
             })->name('dashboard');
 
             // Event views
