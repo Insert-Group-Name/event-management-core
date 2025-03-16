@@ -345,6 +345,7 @@ class EventController extends Controller
             'description' => 'required|string',
             'attendee_name' => 'required|string|max:255',
             'type' => 'required|string|in:view,poll,qa,feedback,rating,chat,checkin,report',
+            'event_id' => 'required|integer|exists:events,id',
         ]);
 
         // Get the authenticated user's ID
@@ -353,6 +354,7 @@ class EventController extends Controller
         // Broadcast the event
         event(new \App\Events\EventNotification(
             $userId,
+            $validated['event_id'],
             $validated['title'],
             $validated['description'],
             $validated['attendee_name'],
@@ -366,6 +368,7 @@ class EventController extends Controller
                 'description' => $validated['description'],
                 'attendee_name' => $validated['attendee_name'],
                 'type' => $validated['type'],
+                'event_id' => $validated['event_id'],
                 'timestamp' => now()->toIso8601String(),
             ]
         ]);

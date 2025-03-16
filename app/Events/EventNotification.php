@@ -19,13 +19,15 @@ class EventNotification implements ShouldBroadcast
     public $attendeeName;
     public $type;
     private $userId;
+    private $eventId;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(int $userId, string $title, string $description, string $attendeeName, string $type)
+    public function __construct(int $userId, int $eventId, string $title, string $description, string $attendeeName, string $type)
     {
         $this->userId = $userId;
+        $this->eventId = $eventId;
         $this->title = $title;
         $this->description = $description;
         $this->attendeeName = $attendeeName;
@@ -40,7 +42,7 @@ class EventNotification implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.' . $this->userId),
+            new PrivateChannel("user.{$this->userId}.event.{$this->eventId}"),
         ];
     }
 
@@ -64,6 +66,7 @@ class EventNotification implements ShouldBroadcast
             'description' => $this->description,
             'attendee_name' => $this->attendeeName,
             'type' => $this->type,
+            'event_id' => $this->eventId,
             'timestamp' => now()->toIso8601String(),
         ];
     }

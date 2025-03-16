@@ -70,6 +70,7 @@ export default function Dashboard({
                 description: 'This is a test notification',
                 attendee_name: 'John Doe',
                 type: 'view',
+                event_id: event.id,
             });
         } catch (err: any) {
             console.error(err.response?.data?.message || 'An error occurred while sending the notification');
@@ -243,7 +244,7 @@ export default function Dashboard({
 
                         {/* User Activity Stream */}
                         <div>
-                            <DashboardNotificationStream />
+                            <DashboardNotificationStream eventId={event.id} />
                         </div>
                     </div>
 

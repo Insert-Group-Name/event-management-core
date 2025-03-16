@@ -10,7 +10,9 @@ interface Notification {
     description: string;
     attendee_name: string;
     timestamp: string;
-}
+    type: 'view' | 'poll' | 'qa' | 'feedback' | 'rating' | 'chat' | 'checkin' | 'report';
+    event_id: number;
+  }
 
 // Extend Window interface to include Echo
 declare global {
@@ -18,88 +20,124 @@ declare global {
         Echo: any;
     }
 }
+interface EventNotificationListenerProps {
+    eventId?: number; // Optional event ID to filter notifications for a specific event
+  }
 
-export default function DashboardNotificationStream() {
+export default function DashboardNotificationStream( {eventId} : EventNotificationListenerProps) {
     const { auth } = usePage().props as any;
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
     const [debugInfo, setDebugInfo] = useState<string>('');
-
+    const [subscribedChannels, setSubscribedChannels] = useState<string[]>([]);
+    
     useEffect(() => {
-        // Make sure we have a user and Echo is initialized
-        if (!auth?.user?.id) {
-            setDebugInfo('User not authenticated');
-            return;
+      // Make sure we have a user and Echo is initialized
+      if (!auth?.user?.id) {
+        setDebugInfo('User not authenticated');
+        return;
+      }
+      
+      if (!window.Echo) {
+        setDebugInfo('Echo is not initialized');
+        return;
+      }
+      
+      const userId = auth.user.id;
+      const echo = window.Echo;
+      const channels: string[] = [];
+      
+      try {
+        // Add connection status listeners
+        echo.connector.pusher.connection.bind('connecting', () => {
+          setConnectionStatus('connecting');
+          setDebugInfo('Connecting to Pusher...');
+        });
+        
+        echo.connector.pusher.connection.bind('connected', () => {
+          setConnectionStatus('connected');
+          setDebugInfo(`Connected to Pusher.`);
+        });
+        
+        echo.connector.pusher.connection.bind('disconnected', () => {
+          setConnectionStatus('disconnected');
+          setDebugInfo('Disconnected from Pusher');
+        });
+        
+        echo.connector.pusher.connection.bind('error', (err: any) => {
+          setConnectionStatus('error');
+          setDebugInfo(`Connection error: ${JSON.stringify(err)}`);
+        });
+        
+        // If eventId is provided, subscribe to the specific event channel
+        if (eventId) {
+          const channelName = `user.${userId}.event.${eventId}`;
+          setDebugInfo(`Subscribing to channel: ${channelName}`);
+          
+          const channel = echo.private(channelName);
+          
+          channel.listen('.event.notification', (data: Notification) => {
+            console.log('Received notification:', data);
+            setNotifications(prev => [data, ...prev]);
+            setDebugInfo(`Received notification: ${data.title} (${data.type})`);
+            
+            // You could also show a toast notification here
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(data.title, {
+                body: `${data.attendee_name}: ${data.description}`
+              });
+            }
+          });
+          
+          channels.push(channelName);
+        } else {
+          // If no eventId is provided, subscribe to the user's general channel
+          // This is kept for backward compatibility
+          const channelName = `user.${userId}`;
+          setDebugInfo(`Subscribing to channel: ${channelName}`);
+          
+          const channel = echo.private(channelName);
+          
+          channel.listen('.event.notification', (data: Notification) => {
+            console.log('Received notification:', data);
+            setNotifications(prev => [data, ...prev]);
+            setDebugInfo(`Received notification: ${data.title} (${data.type})`);
+            
+            // You could also show a toast notification here
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(data.title, {
+                body: `${data.attendee_name}: ${data.description}`
+              });
+            }
+          });
+          
+          channels.push(channelName);
         }
-
-        if (!window.Echo) {
-            setDebugInfo('Echo is not initialized');
-            return;
-        }
-
-        const userId = auth.user.id;
-        setDebugInfo(`Attempting to connect to channel: user.${userId}`);
-
-        // Listen for event notifications on the private user channel
-        const echo = window.Echo;
-
-        try {
-            // Add connection status listeners
-            echo.connector.pusher.connection.bind('connecting', () => {
-                setConnectionStatus('connecting');
-                setDebugInfo('Connecting to Pusher...');
-            });
-
-            echo.connector.pusher.connection.bind('connected', () => {
-                setConnectionStatus('connected');
-                setDebugInfo(`Connected to Pusher. Channel: user.${userId}`);
-            });
-
-            echo.connector.pusher.connection.bind('disconnected', () => {
-                setConnectionStatus('disconnected');
-                setDebugInfo('Disconnected from Pusher');
-            });
-
-            echo.connector.pusher.connection.bind('error', (err: any) => {
-                setConnectionStatus('error');
-                setDebugInfo(`Connection error: ${JSON.stringify(err)}`);
-            });
-
-            const channel = echo.private(`user.${userId}`);
-
-            channel.listen('.event.notification', (data: Notification) => {
-                console.log('Received notification:', data);
-                setNotifications((prev) => [data, ...prev]);
-                setDebugInfo(`Received notification: ${data.title}`);
-
-                // You could also show a toast notification here
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification(data.title, {
-                        body: `${data.attendee_name}: ${data.description}`,
-                    });
-                }
-            });
-
-            return () => {
-                if (echo && typeof echo.leave === 'function') {
-                    echo.leave(`user.${userId}`);
-                }
-            };
-        } catch (error) {
-            console.error('Error setting up Echo listener:', error);
-            setDebugInfo(`Error: ${error instanceof Error ? error.message : String(error)}`);
-            setConnectionStatus('error');
-        }
-    }, [auth?.user?.id]);
-
+        
+        setSubscribedChannels(channels);
+        
+        return () => {
+          // Clean up by leaving all subscribed channels
+          channels.forEach(channelName => {
+            if (echo && typeof echo.leave === 'function') {
+              echo.leave(channelName);
+            }
+          });
+        };
+      } catch (error) {
+        console.error('Error setting up Echo listener:', error);
+        setDebugInfo(`Error: ${error instanceof Error ? error.message : String(error)}`);
+        setConnectionStatus('error');
+      }
+    }, [auth?.user?.id, eventId]);
+    
     // Request notification permission on component mount
     useEffect(() => {
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
     }, []);
-
     const toggleNotifications = () => {
         setShowNotifications((prev) => !prev);
     };
