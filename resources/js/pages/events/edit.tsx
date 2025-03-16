@@ -3,7 +3,6 @@ import { Head } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import { EventForm } from '@/components/events/event-form';
 import { type Event, type UpdateEventData } from '@/types/event';
-import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 
 interface Props {
@@ -13,17 +12,6 @@ interface Props {
 export default function Edit({ event }: Props) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Events',
-            href: '/events',
-        },
-        {
-            title: `Edit: ${event.name}`,
-            href: `/events/${event.id}/edit`,
-        },
-    ];
-
     const handleSubmit = (data: UpdateEventData) => {
         setIsSubmitting(true);
         
