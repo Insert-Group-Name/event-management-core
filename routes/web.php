@@ -10,6 +10,11 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Add a global dashboard route
+    Route::get('/dashboard', function () {
+        return Inertia::render('dashboard');
+    })->name('dashboard');
+    
     Route::prefix('events')->controller(EventController::class)->group(function () {
         Route::get('/', 'index')->name('events.index');
         Route::get('/create', 'create')->name('events.create');
