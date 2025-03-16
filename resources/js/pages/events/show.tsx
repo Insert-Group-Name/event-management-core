@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type Event } from '@/types/event';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Play } from "lucide-react";
+import { Play, Calendar } from "lucide-react";
 
 interface Props {
     event: Event;
@@ -41,6 +41,10 @@ export default function Show({ event }: Props) {
         router.visit(`/events/${event.id}/story`);
     };
 
+    const handleAgendaBuilder = () => {
+        router.visit(`/events/${event.id}/agenda`);
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={event.name} />
@@ -51,6 +55,10 @@ export default function Show({ event }: Props) {
                         <Button onClick={handleStoryView} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
                             <Play className="mr-2 h-4 w-4" /> 
                             Story View
+                        </Button>
+                        <Button onClick={handleAgendaBuilder} variant="outline">
+                            <Calendar className="mr-2 h-4 w-4" />
+                            Agenda Builder
                         </Button>
                         <Button variant="outline" onClick={handleEdit}>
                             Edit

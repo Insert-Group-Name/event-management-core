@@ -42,6 +42,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 
                 // Public view route
                 Route::get('/view', 'attendeeView')->name('view');
+                
+                // Agenda builder route
+                Route::get('/agenda', 'agendaBuilder')->name('agenda.builder');
             });
 
             // Agenda Routes

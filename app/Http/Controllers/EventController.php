@@ -325,4 +325,14 @@ class EventController extends Controller
         return redirect()->route('events.index')
             ->with('message', 'Event deleted successfully.');
     }
+
+    /**
+     * Display the agenda builder for the event.
+     */
+    public function agendaBuilder(Event $event): Response
+    {
+        return Inertia::render('events/agenda-builder', [
+            'event' => $event
+        ]);
+    }
 }
