@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { format } from "date-fns"
 import PollSlide from "@/components/slide-types/poll-slide"
-import QuizSlide from "@/components/slide-types/quiz-slide"
+import { default as QuizSlide, type QuizOption } from "@/components/slide-types/quiz-slide"
 import QaSlide from "@/components/slide-types/qa-slide"
 import RatingSlide from "@/components/slide-types/rating-slide"
 import CheckinSlide from "@/components/slide-types/checkin-slide"
@@ -180,8 +180,8 @@ export default function EventStory({
         return (
           <QuizSlide
             question={slide.content.question as string}
-            options={slide.content.options as string[]}
-            correctAnswer={slide.content.correctAnswer as string}
+            options={slide.content.options as QuizOption[]}
+            correctAnswer={slide.content.correctAnswer as QuizOption}
             onAnswer={(answer) => console.log("Answered:", answer)}
           />
         )
