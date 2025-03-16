@@ -63,6 +63,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::put('/{agendaItem}', 'update')->name('update');
                 Route::delete('/{agendaItem}', 'destroy')->name('destroy');
             });
+            
+            // Attendee Routes
+            Route::prefix('attendees')->controller(\App\Http\Controllers\AttendeeController::class)->name('attendees.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{attendee}', 'show')->name('show');
+                Route::get('/{attendee}/edit', 'edit')->name('edit');
+                Route::put('/{attendee}', 'update')->name('update');
+                Route::delete('/{attendee}', 'destroy')->name('destroy');
+            });
         });
     });
 });

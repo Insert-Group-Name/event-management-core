@@ -133,7 +133,9 @@ export default function Dashboard({
                                 {format(new Date(event.start_date), 'MMMM d, yyyy')} - {format(new Date(event.end_date), 'MMMM d, yyyy')}
                             </p>
                         </div>
-                        <Button onClick={handleBroadcastNotificationSubmit}>Refresh Data</Button>
+                        <div className="flex space-x-2">
+                            <Button onClick={handleBroadcastNotificationSubmit}>Refresh Data</Button>
+                        </div>
                     </div>
 
                     {/* Stats Overview */}

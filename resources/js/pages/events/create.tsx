@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import { EventForm } from '@/components/events/event-form';
 import { type CreateEventData } from '@/types/event';
-import AppLayout from '@/layouts/app-layout';
+import AppLayout from '@/layouts/onboarding-layout';
 import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -40,14 +40,13 @@ export default function Create() {
     };
 
     return (
-        <div>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Event" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <h1 className="text-2xl font-semibold mb-6">Create Event</h1>
                 <div className="mx-auto w-full max-w-3xl">
                     <EventForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
                 </div>
             </div>
-        </div>
+        </AppLayout>
     );
 } 
