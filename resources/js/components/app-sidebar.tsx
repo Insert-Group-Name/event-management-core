@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Calendar, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Calendar, Folder, LayoutGrid, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 interface Event {
@@ -32,6 +32,12 @@ export function AppSidebar() {
             href: eventId ? `/events/${eventId}/agenda` : '/events',
             icon: Calendar,
         },
+        {
+            title: 'Attendees',
+            routeName: 'event.attendees.index',
+            href: eventId ? `/events/${eventId}/attendees` : '/events',
+            icon: Users,
+        },
     ];
 
     const footerNavItems: NavItem[] = [
@@ -53,7 +59,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href="/" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -66,7 +72,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

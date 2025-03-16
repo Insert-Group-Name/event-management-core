@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\EventController;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -10,15 +11,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Notifications test page
-    Route::get('/notifications', function () {
-        return Inertia::render('events/notifications');
-    })->name('events.notifications');
-    
-    // Echo debug page
-    Route::get('/echo-debug', function () {
-        return Inertia::render('events/echo-debug');
-    })->name('events.echo-debug');
+    Route::get('/', function () {
+        return Redirect::route('events.index');
+    })->name('home');
     
     // Event routes
     Route::prefix('events')->group(function () {
@@ -67,6 +62,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/{agendaItem}/edit', 'edit')->name('edit');
                 Route::put('/{agendaItem}', 'update')->name('update');
                 Route::delete('/{agendaItem}', 'destroy')->name('destroy');
+            });
+            
+            // Attendee Routes
+            Route::prefix('attendees')->controller(\App\Http\Controllers\AttendeeController::class)->name('attendees.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{attendee}', 'show')->name('show');
+                Route::get('/{attendee}/edit', 'edit')->name('edit');
+                Route::put('/{attendee}', 'update')->name('update');
+                Route::delete('/{attendee}', 'destroy')->name('destroy');
             });
         });
     });

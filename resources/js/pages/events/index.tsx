@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppLayout from '@/layouts/onboarding-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -64,7 +65,7 @@ export default function Index({ events }: Props) {
     };
 
     return (
-        <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Events" />
             <div className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="mb-6 flex items-center justify-between">
@@ -151,6 +152,6 @@ export default function Index({ events }: Props) {
                     </div>
                 )}
             </div>
-        </div>
+        </AppLayout>
     );
 }
