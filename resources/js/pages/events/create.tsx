@@ -40,12 +40,14 @@ export default function Create() {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <div>
             <Head title="Create Event" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <h1 className="text-2xl font-semibold mb-6">Create Event</h1>
-                <EventForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+                <div className="mx-auto w-full max-w-3xl">
+                    <EventForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+                </div>
             </div>
-        </AppLayout>
+        </div>
     );
 } 

@@ -66,7 +66,7 @@ export default function Index({ events }: Props) {
     return (
         <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <Head title="Events" />
-            <div id="events-index" className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl p-4">
+            <div className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold">Events</h1>
                     <Button onClick={() => router.visit('/events/create')}>Create Event</Button>
