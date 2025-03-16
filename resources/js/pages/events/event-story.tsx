@@ -162,55 +162,65 @@ export default function EventStory({
       case "poll":
         return (
           <PollSlide
-            question={slide.content.question}
-            options={slide.content.options}
+            question={slide.content.question as string}
+            options={slide.content.options as string[]}
             onVote={(option) => console.log("Voted:", option)}
           />
         )
       case "quiz":
         return (
           <QuizSlide
-            question={slide.content.question}
-            options={slide.content.options}
-            correctAnswer={slide.content.correctAnswer}
+            question={slide.content.question as string}
+            options={slide.content.options as string[]}
+            correctAnswer={slide.content.correctAnswer as string}
             onAnswer={(answer) => console.log("Answered:", answer)}
           />
         )
       case "qa":
         return (
-          <QaSlide question={slide.content.question} onSubmit={(answer) => console.log("Q&A submitted:", answer)} />
+          <QaSlide question={slide.content.question as string} onSubmit={(answer) => console.log("Q&A submitted:", answer)} />
         )
       case "rating":
         return (
           <RatingSlide
-            question={slide.content.question}
-            maxRating={slide.content.maxRating}
+            question={slide.content.question as string}
+            maxRating={slide.content.maxRating as number}
             onRate={(rating) => console.log("Rated:", rating)}
           />
         )
       case "checkin":
         return (
           <CheckinSlide
-            location={slide.content.location}
+            location={slide.content.location as string}
             onCheckin={() => console.log("Checked in at:", activity.location)}
           />
         )
       case "selfie":
-        return <SelfieSlide prompt={slide.content.prompt} onCapture={(image) => console.log("Selfie captured")} />
+        return (
+          <SelfieSlide 
+            prompt={slide.content.prompt as string} 
+            onCapture={(image) => console.log("Selfie captured", image)} 
+          />
+        )
       case "speaker":
-        const speaker = activity.speakers?.find((s) => s.id === slide.content.speakerId)
-        if (!speaker) return <div>Speaker not found</div>
+        {
+          const speaker = activity.speakers?.find((s) => s.id === slide.content.speakerId)
+          if (!speaker) return <div>Speaker not found</div>
 
-        // Find upcoming sessions for this speaker
-        const upcomingSessions = agenda.activities
-          .filter((a) => a.startTime > currentTime && a.speakers?.some((s) => s.id === speaker.id))
-          .map((a) => ({
-            title: a.title,
-            time: format(a.startTime, "h:mm a"),
-            location: a.location,
-          }))
+          // Find upcoming sessions for this speaker
+          const upcomingSessions = agenda.activities
+            .filter((a) => a.startTime > currentTime && a.speakers?.some((s) => s.id === speaker.id))
+            .map((a) => ({
+              title: a.title,
+              time: format(
+                a.startTime instanceof Date ? a.startTime : new Date(a.startTime), 
+                "h:mm a"
+              ),
+              location: a.location,
+            }))
 
-        return <SpeakerSlide speaker={speaker} nextSessions={upcomingSessions} />
+          return <SpeakerSlide speaker={speaker} nextSessions={upcomingSessions} />
+        }
       default:
         return <div>Unsupported slide type</div>
     }
@@ -240,7 +250,7 @@ export default function EventStory({
 
             <TabsContent value="agenda" className="mt-4">
               <div className="space-y-4">
-                {agenda.activities.map((activity, index) => (
+                {agenda.activities.map((activity) => (
                   <Card key={activity.id} className="bg-black/50 border border-white/20">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
@@ -309,8 +319,6 @@ export default function EventStory({
 
   // Time Controls Overlay
   const renderTimeControls = () => {
-    const eventStart = agenda.date
-
     return (
       <div className="fixed inset-x-0 bottom-0 bg-black/90 p-4 z-50 border-t border-white/20">
         <div className="flex justify-between items-center mb-4">
@@ -368,7 +376,12 @@ export default function EventStory({
   if (availableActivities.length === 0) {
     // Calculate time until first activity
     const firstActivity = agenda.activities[0]
-    const timeUntilStart = firstActivity ? firstActivity.startTime.getTime() - currentTime.getTime() : 0
+    
+    // Make sure startTime is a Date object
+    const startTime = firstActivity ? (firstActivity.startTime instanceof Date 
+      ? firstActivity.startTime 
+      : new Date(firstActivity.startTime)) : null
+    const timeUntilStart = startTime ? startTime.getTime() - currentTime.getTime() : 0
 
     // Convert to days, hours, minutes
     const days = Math.floor(timeUntilStart / (1000 * 60 * 60 * 24))
@@ -396,7 +409,9 @@ export default function EventStory({
           </div>
         </div>
 
-        <p className="text-center mb-6">The first activity starts at {format(firstActivity?.startTime, "h:mm a")}</p>
+        <p className="text-center mb-6">
+          The first activity starts at {startTime ? format(startTime, "h:mm a") : ""}
+        </p>
 
         <div className="flex gap-2">
           <Button onClick={onClose}>Close</Button>
@@ -407,8 +422,8 @@ export default function EventStory({
             variant="outline"
             onClick={() => {
               // Set time to 5 minutes after event start
-              if (firstActivity) {
-                setCurrentTime(new Date(firstActivity.startTime.getTime() + 5 * 60 * 1000))
+              if (startTime) {
+                setCurrentTime(new Date(startTime.getTime() + 5 * 60 * 1000))
               }
             }}
           >
@@ -479,12 +494,11 @@ export default function EventStory({
 
       {/* Progress bars for current activity slides */}
       <div className="flex gap-1 p-2 z-10 bg-black/40">
-        {currentActivity.slides.map((_, index) => (
+        {currentActivity.slides.map((_, i) => (
           <Progress
-            key={index}
-            value={progress[index]}
-            className="h-1 flex-1 bg-gray-700"
-            indicatorClassName="bg-white"
+            key={i}
+            value={i < currentSlideIndex ? 100 : i === currentSlideIndex ? progress[i] : 0}
+            className="h-1.5 w-full"
           />
         ))}
       </div>
