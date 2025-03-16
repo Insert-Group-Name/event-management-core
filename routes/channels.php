@@ -24,8 +24,5 @@ Broadcast::channel('user.{userId}.event.{eventId}', function ($user, $userId, $e
     // 1. The event exists
     // 2. The user is the owner of the event OR
     // 3. The user is registered for the event
-    return $event && (
-        $event->user_id === $user->id || 
-        $user->registrations()->where('event_id', $eventId)->exists()
-    );
+    return $event && $event->user_id === $user->id;
 });
