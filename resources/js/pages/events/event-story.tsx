@@ -610,8 +610,8 @@ export default function EventStory({
       </div>
 
       {/* Invisible touch areas for swipe (larger than the buttons) */}
-      <div className="absolute inset-y-0 left-0 w-1/5 z-10" onClick={goToPreviousSlide} />
-      <div className="absolute inset-y-0 right-0 w-1/5 z-10" onClick={goToNextSlide} />
+      <div className="absolute y-40 left-0 w-1/5 z-10 " onClick={goToPreviousSlide} />
+      <div className="absolute y-40 right-0 w-1/5 z-10" onClick={goToNextSlide} />
 
       {/* Current slide */}
       <div className="flex-1 flex items-center justify-center overflow-hidden">
