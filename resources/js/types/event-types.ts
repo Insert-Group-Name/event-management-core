@@ -3,7 +3,7 @@ export type SlideType = "poll" | "quiz" | "qa" | "rating" | "checkin" | "selfie"
 export interface Slide {
   id: string
   type: SlideType
-  content: any
+  content: Record<string, unknown>
   duration: number // in seconds
 }
 
@@ -28,6 +28,8 @@ export interface Activity {
   description: string
   startTime: Date
   endTime: Date
+  startDate?: string
+  endDate?: string
   type: "session" | "break" | "networking" | "workshop" | "keynote"
   location: string
   slides: Slide[]

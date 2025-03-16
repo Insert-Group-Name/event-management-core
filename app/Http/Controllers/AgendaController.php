@@ -56,6 +56,10 @@ class AgendaController extends Controller
             'order' => 'nullable|integer',
         ]);
 
+        // Extract date part from timestamps
+        $validated['start_date'] = date('Y-m-d', strtotime($validated['start_time']));
+        $validated['end_date'] = date('Y-m-d', strtotime($validated['end_time']));
+
         // Create the agenda item
         $agendaItem = $event->agendaItems()->create($validated);
 
@@ -118,6 +122,10 @@ class AgendaController extends Controller
             'speaker' => 'nullable|string|max:255',
             'order' => 'nullable|integer',
         ]);
+
+        // Extract date part from timestamps
+        $validated['start_date'] = date('Y-m-d', strtotime($validated['start_time']));
+        $validated['end_date'] = date('Y-m-d', strtotime($validated['end_time']));
 
         // Update the agenda item
         $agendaItem->update($validated);

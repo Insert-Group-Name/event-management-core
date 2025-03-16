@@ -89,7 +89,7 @@ class EventController extends Controller
     {
         // Load the event with its agenda items and associated data
         $event->load(['agendaItems' => function ($query) {
-            $query->orderBy('start_date');
+            $query->orderBy('start_time');
         }]);
 
         // Transform the data into the format expected by the story view
@@ -105,8 +105,10 @@ class EventController extends Controller
                     'id' => (string)$item->id,
                     'title' => $item->title,
                     'description' => $item->description ?? 'No description available',
-                    'startTime' => $item->start_date,
-                    'endTime' => $item->end_date,
+                    'startTime' => $item->start_time,
+                    'endTime' => $item->end_time,
+                    'startDate' => $item->start_date,
+                    'endDate' => $item->end_date,
                     'type' => $item->type ?? 'session',
                     'location' => $item->location ?? 'Main Hall',
                     'slides' => $slides,
@@ -267,7 +269,7 @@ class EventController extends Controller
     {
         // Load the event with its agenda items and associated data
         $event->load(['agendaItems' => function ($query) {
-            $query->orderBy('start_date');
+            $query->orderBy('start_time');
         }]);
 
         // Transform the data into the format expected by the public view
@@ -287,8 +289,10 @@ class EventController extends Controller
                     'id' => (string)$item->id,
                     'title' => $item->title,
                     'description' => $item->description ?? 'No description available',
-                    'startTime' => date('c', strtotime($item->start_date)),
-                    'endTime' => date('c', strtotime($item->end_date)),
+                    'startTime' => date('c', strtotime($item->start_time)),
+                    'endTime' => date('c', strtotime($item->end_time)),
+                    'startDate' => $item->start_date ? date('Y-m-d', strtotime($item->start_date)) : null,
+                    'endDate' => $item->end_date ? date('Y-m-d', strtotime($item->end_date)) : null,
                     'type' => $item->type ?? 'session',
                     'location' => $item->location ?? 'Main Hall',
                     'slides' => $slides,

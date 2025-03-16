@@ -18,7 +18,9 @@ class AgendaItem extends Model
     protected $fillable = [
         'title',
         'description',
+        'start_date',
         'start_time',
+        'end_date',
         'end_time',
         'event_id',
         'order',
@@ -34,6 +36,8 @@ class AgendaItem extends Model
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     /**
