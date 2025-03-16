@@ -334,4 +334,40 @@ class EventController extends Controller
             'event' => $event
         ]);
     }
+
+    /**
+     * Broadcast an event notification.
+     */
+    public function broadcastNotification(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'attendee_name' => 'required|string|max:255',
+            'type' => 'required|string|in:view,poll,qa,feedback,rating,chat,checkin,report',
+        ]);
+
+        // Get the authenticated user's ID
+        $userId = Auth::id();
+
+        // Broadcast the event
+        event(new \App\Events\EventNotification(
+            $userId,
+            $validated['title'],
+            $validated['description'],
+            $validated['attendee_name'],
+            $validated['type']
+        ));
+
+        return response()->json([
+            'message' => 'Notification broadcasted successfully',
+            'data' => [
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'attendee_name' => $validated['attendee_name'],
+                'type' => $validated['type'],
+                'timestamp' => now()->toIso8601String(),
+            ]
+        ]);
+    }
 }
