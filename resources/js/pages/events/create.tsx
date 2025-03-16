@@ -23,15 +23,20 @@ export default function Create() {
     const handleSubmit = (data: CreateEventData | Partial<CreateEventData>) => {
         setIsSubmitting(true);
         
-        // Simulate API call
-        console.log('Creating event with data:', data);
-        
-        setTimeout(() => {
-            setIsSubmitting(false);
-            // For UI demo, we could redirect or show success message
-            alert('Event created successfully!');
-            router.visit('/events');
-        }, 1000);
+        router.post('/events', {
+            name: data.name,
+            description: data.description,
+            start_date: data.start_date,
+            end_date: data.end_date,
+            location: data.location
+        }, {
+            onSuccess: () => {
+                setIsSubmitting(false);
+            },
+            onError: () => {
+                setIsSubmitting(false);
+            }
+        });
     };
 
     return (

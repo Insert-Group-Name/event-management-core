@@ -6,6 +6,8 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,11 +19,22 @@ class EventController extends Controller
      */
     public function index(): Response
     {
+        // Temporarily increase timeout for debugging
+        set_time_limit(120);
+        
+        // Enable query logging
+        DB::enableQueryLog();
+        
+        $events = Event::select('id', 'name', 'description', 'start_date', 'end_date', 'user_id', 'created_at')
+            ->with('user:id,name')
+            ->latest('created_at')
+            ->paginate(10);
+            
+        // Log the executed queries
+        Log::info('Event queries:', ['queries' => DB::getQueryLog()]);
+        
         return Inertia::render('events/index', [
-            'events' => Event::select('id', 'name', 'description', 'start_date', 'end_date', 'user_id', 'created_at')
-                ->with('user:id,name')
-                ->latest('created_at')
-                ->paginate(10)
+            'events' => $events
         ]);
     }
 

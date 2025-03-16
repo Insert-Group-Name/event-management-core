@@ -14,9 +14,10 @@ interface EventFormProps {
 
 export function EventForm({ event, onSubmit, isSubmitting }: EventFormProps) {
     const [formData, setFormData] = useState<CreateEventData>({
-        title: event?.title || '',
+        name: event?.name || '',
         description: event?.description || '',
-        date: event?.date || '',
+        start_date: event?.start_date || '',
+        end_date: event?.end_date || '',
         location: event?.location || '',
     });
 
@@ -38,13 +39,13 @@ export function EventForm({ event, onSubmit, isSubmitting }: EventFormProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="title">Title</Label>
+                        <Label htmlFor="name">Event Name</Label>
                         <Input
-                            id="title"
-                            name="title"
-                            value={formData.title}
+                            id="name"
+                            name="name"
+                            value={formData.name}
                             onChange={handleChange}
-                            placeholder="Enter event title"
+                            placeholder="Enter event name"
                             required
                         />
                     </div>
@@ -62,12 +63,24 @@ export function EventForm({ event, onSubmit, isSubmitting }: EventFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="date">Date</Label>
+                        <Label htmlFor="start_date">Start Date</Label>
                         <Input
-                            id="date"
-                            name="date"
+                            id="start_date"
+                            name="start_date"
                             type="datetime-local"
-                            value={formData.date}
+                            value={formData.start_date}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="end_date">End Date</Label>
+                        <Input
+                            id="end_date"
+                            name="end_date"
+                            type="datetime-local"
+                            value={formData.end_date}
                             onChange={handleChange}
                             required
                         />
@@ -81,7 +94,6 @@ export function EventForm({ event, onSubmit, isSubmitting }: EventFormProps) {
                             value={formData.location}
                             onChange={handleChange}
                             placeholder="Enter event location"
-                            required
                         />
                     </div>
                 </CardContent>
