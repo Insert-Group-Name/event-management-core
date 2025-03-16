@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -94,21 +93,24 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
             value={question}
             onChange={(e) => updateContent({ question: e.target.value })}
             placeholder="Enter your poll question"
+            className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
           />
         </div>
         
         <div className="space-y-2">
           <Label>Options</Label>
           {options.map((option, index) => (
-            <div key={index} className="flex items-center gap-2">
+            <div key={index} className="flex items-center gap-2 group">
               <Input
                 value={option}
                 onChange={(e) => handleOptionChange(index, e.target.value)}
                 placeholder={`Option ${index + 1}`}
+                className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
               />
               <Button
                 variant="ghost"
                 size="icon"
+                className="opacity-0 group-hover:opacity-100"
                 onClick={() => handleRemoveOption(index)}
                 disabled={options.length <= 2}
               >
@@ -118,10 +120,10 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
           ))}
           
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleAddOption}
-            className="mt-2"
+            className="pl-0"
           >
             <Plus className="h-4 w-4 mr-2" /> Add Option
           </Button>
@@ -180,30 +182,34 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
             value={question}
             onChange={(e) => updateContent({ question: e.target.value })}
             placeholder="Enter your quiz question"
+            className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
           />
         </div>
         
         <div className="space-y-2">
           <Label>Options</Label>
           {options.map((option, index) => (
-            <div key={index} className="flex items-center gap-2">
+            <div key={index} className="flex items-center gap-2 group">
               <div className="flex-1 flex items-center gap-2">
                 <Input
                   value={option}
                   onChange={(e) => handleOptionChange(index, e.target.value)}
                   placeholder={`Option ${index + 1}`}
+                  className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
                 />
                 <Button
                   variant={option === correctAnswer ? "default" : "outline"}
                   size="sm"
                   onClick={() => updateContent({ correctAnswer: option })}
+                  className="h-8 px-2"
                 >
-                  Correct
+                  ✓
                 </Button>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
+                className="opacity-0 group-hover:opacity-100"
                 onClick={() => handleRemoveOption(index)}
                 disabled={options.length <= 2}
               >
@@ -213,10 +219,10 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
           ))}
           
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleAddOption}
-            className="mt-2"
+            className="pl-0"
           >
             <Plus className="h-4 w-4 mr-2" /> Add Option
           </Button>
@@ -237,6 +243,7 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
             value={question}
             onChange={(e) => updateContent({ question: e.target.value })}
             placeholder="Enter your question for the audience"
+            className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
           />
         </div>
       </div>
@@ -256,6 +263,7 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
             value={question}
             onChange={(e) => updateContent({ question: e.target.value })}
             placeholder="Enter your rating question"
+            className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
           />
         </div>
         
@@ -263,7 +271,7 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
           <Label htmlFor="max-rating">Maximum Rating: {maxRating}</Label>
           <div className="flex items-center gap-4">
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => updateContent({ maxRating: Math.max(1, maxRating - 1) })}
               disabled={maxRating <= 1}
@@ -280,7 +288,7 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
               />
             </div>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => updateContent({ maxRating: Math.min(10, maxRating + 1) })}
               disabled={maxRating >= 10}
@@ -305,6 +313,7 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
             value={location}
             onChange={(e) => updateContent({ location: e.target.value })}
             placeholder="Enter the check-in location"
+            className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
           />
         </div>
       </div>
@@ -323,6 +332,7 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
             value={prompt}
             onChange={(e) => updateContent({ prompt: e.target.value })}
             placeholder="Enter a prompt for the selfie"
+            className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
           />
         </div>
       </div>
@@ -341,8 +351,9 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
             value={speakerId}
             onChange={(e) => updateContent({ speakerId: e.target.value })}
             placeholder="Enter the speaker ID"
+            className="bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mt-1">
             This will display information about the speaker from the event's speaker list.
           </p>
         </div>
@@ -357,59 +368,55 @@ export default function SlideEditor({ slide, onChange }: SlideEditorProps) {
   }
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Edit {slide.slide_type.charAt(0).toUpperCase() + slide.slide_type.slice(1)} Slide</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="slide-title">Slide Title</Label>
-          <Input
-            id="slide-title"
-            value={title}
-            onChange={handleTitleChange}
-            placeholder="Enter slide title"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="slide-duration">
-            Duration: {formatDuration(duration)}
-          </Label>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handleDurationChange([Math.max(5, duration - 5)])}
-              disabled={duration <= 5}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <div className="flex-1">
-              <Slider
-                id="slide-duration"
-                value={[duration]}
-                min={5}
-                max={300}
-                step={5}
-                onValueChange={handleDurationChange}
-              />
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handleDurationChange([Math.min(300, duration + 5)])}
-              disabled={duration >= 300}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="slide-title">Slide Title</Label>
+        <Input
+          id="slide-title"
+          value={title}
+          onChange={handleTitleChange}
+          placeholder="Enter slide title"
+          className="text-lg font-medium bg-transparent border-0 border-b rounded-none focus-visible:ring-0 focus-visible:border-gray-400 px-0"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="slide-duration">
+          Duration: {formatDuration(duration)}
+        </Label>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDurationChange([Math.max(5, duration - 5)])}
+            disabled={duration <= 5}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <div className="flex-1">
+            <Slider
+              id="slide-duration"
+              value={[duration]}
+              min={5}
+              max={300}
+              step={5}
+              onValueChange={handleDurationChange}
+            />
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDurationChange([Math.min(300, duration + 5)])}
+            disabled={duration >= 300}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
-        
-        <div className="border-t pt-4">
-          {renderSlideTypeEditor()}
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div className="pt-4">
+        {renderSlideTypeEditor()}
+      </div>
+    </div>
   )
 } 

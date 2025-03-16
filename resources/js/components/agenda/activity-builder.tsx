@@ -1,12 +1,11 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PlusCircle, Clock, MapPin, Users, ChevronRight, ChevronLeft, X } from "lucide-react"
+import { PlusCircle, Clock, X, Plus, ChevronDown, ChevronRight } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { type AgendaItem } from "@/types/agenda-item"
 import { type Slide, type SlideType, type CreateSlideData } from "@/types/agenda-slide"
@@ -27,85 +26,155 @@ export default function ActivityBuilder({
   onSave, 
   isSubmitting = false 
 }: ActivityBuilderProps) {
-  const [currentStep, setCurrentStep] = useState<"details" | "slides">("details")
-  const [activityData, setActivityData] = useState<Partial<AgendaItem>>({
-    title: agendaItem?.title || "",
-    description: agendaItem?.description || "",
-    start_time: agendaItem?.start_time || "",
-    end_time: agendaItem?.end_time || "",
-    location: agendaItem?.location || "",
-    speaker: agendaItem?.speaker || "",
-    order: agendaItem?.order || 0,
-    event_id: eventId,
-  })
-  
-  const [slidesList, setSlidesList] = useState<CreateSlideData[]>(
-    slides.map(slide => ({
-      title: slide.title,
-      duration: slide.duration,
-      slide_type: slide.slide_type,
-      activity_id: slide.activity_id,
-      order: slide.order,
-      content: slide.content
-    })) || []
+  const [activities, setActivities] = useState<Partial<AgendaItem>[]>(
+    agendaItem ? [agendaItem] : []
   )
   
-  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(-1)
+  const [activitySlides, setActivitySlides] = useState<Record<number, CreateSlideData[]>>(
+    agendaItem?.id ? { 
+      [agendaItem.id]: slides.map(slide => ({
+        title: slide.title,
+        duration: slide.duration,
+        slide_type: slide.slide_type,
+        activity_id: slide.activity_id,
+        order: slide.order,
+        content: slide.content
+      }))
+    } : {}
+  )
   
-  const handleActivityChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setActivityData(prev => ({
-      ...prev,
-      [name]: name === "order" ? parseInt(value) || 0 : value
-    }))
-  }
+  const [expandedActivity, setExpandedActivity] = useState<number | null>(null)
+  const [editingSlideIndex, setEditingSlideIndex] = useState<number | null>(null)
+  const [editingActivityIndex, setEditingActivityIndex] = useState<number | null>(null)
+  const newTimeInputRef = useRef<HTMLInputElement>(null)
   
-  const handleAddSlide = (type: SlideType) => {
-    const newSlide: CreateSlideData = {
-      title: `New ${type} slide`,
-      duration: 30, // Default 30 seconds
-      slide_type: type,
-      activity_id: agendaItem?.id || 0,
-      order: slidesList.length,
-      content: getDefaultContentForType(type)
-    }
-    
-    setSlidesList(prev => [...prev, newSlide])
-    setCurrentSlideIndex(slidesList.length)
-  }
-  
-  const handleUpdateSlide = (index: number, data: Partial<CreateSlideData>) => {
-    setSlidesList(prev => {
+  const handleActivityChange = (index: number, field: string, value: any) => {
+    setActivities(prev => {
       const updated = [...prev]
-      updated[index] = { ...updated[index], ...data }
+      updated[index] = { ...updated[index], [field]: value }
       return updated
     })
   }
   
-  const handleRemoveSlide = (index: number) => {
-    setSlidesList(prev => {
-      const updated = prev.filter((_, i) => i !== index)
-      // Update order for remaining slides
-      return updated.map((slide, i) => ({ ...slide, order: i }))
+  const handleAddActivity = () => {
+    // Default time is one hour after the last activity, or current time if no activities
+    let defaultStartTime = new Date()
+    let defaultEndTime = new Date()
+    
+    if (activities.length > 0) {
+      const lastActivity = activities[activities.length - 1]
+      if (lastActivity.end_time) {
+        defaultStartTime = new Date(lastActivity.end_time)
+        defaultEndTime = new Date(defaultStartTime)
+        defaultEndTime.setHours(defaultEndTime.getHours() + 1)
+      }
+    }
+    
+    // Format dates for input fields
+    const formattedStartTime = format(defaultStartTime, "yyyy-MM-dd'T'HH:mm")
+    const formattedEndTime = format(defaultEndTime, "yyyy-MM-dd'T'HH:mm")
+    
+    const newActivity: Partial<AgendaItem> = {
+      title: "",
+      description: "",
+      start_time: formattedStartTime,
+      end_time: formattedEndTime,
+      location: "",
+      speaker: "",
+      order: activities.length,
+      event_id: eventId
+    }
+    
+    setActivities(prev => [...prev, newActivity])
+    setEditingActivityIndex(activities.length)
+    
+    // Focus the time input of the new activity
+    setTimeout(() => {
+      if (newTimeInputRef.current) {
+        newTimeInputRef.current.focus()
+      }
+    }, 100)
+  }
+  
+  const handleRemoveActivity = (index: number) => {
+    setActivities(prev => prev.filter((_, i) => i !== index))
+    
+    if (editingActivityIndex === index) {
+      setEditingActivityIndex(null)
+    } else if (editingActivityIndex !== null && editingActivityIndex > index) {
+      setEditingActivityIndex(editingActivityIndex - 1)
+    }
+  }
+  
+  const toggleExpandActivity = (index: number) => {
+    setExpandedActivity(expandedActivity === index ? null : index)
+    setEditingActivityIndex(null)
+  }
+  
+  const handleAddSlide = (activityIndex: number, type: SlideType) => {
+    const activity = activities[activityIndex]
+    if (!activity) return
+    
+    const activityId = activity.id || -activityIndex - 1 // Negative for new activities
+    
+    const newSlide: CreateSlideData = {
+      title: `New ${type}`,
+      duration: 30, // Default 30 seconds
+      slide_type: type,
+      activity_id: activityId,
+      order: activitySlides[activityId]?.length || 0,
+      content: getDefaultContentForType(type, activity)
+    }
+    
+    setActivitySlides(prev => ({
+      ...prev,
+      [activityId]: [...(prev[activityId] || []), newSlide]
+    }))
+    
+    // Set editing to the new slide
+    setEditingSlideIndex((prev) => (activitySlides[activityId]?.length || 0))
+  }
+  
+  const handleUpdateSlide = (activityIndex: number, slideIndex: number, data: Partial<CreateSlideData>) => {
+    const activity = activities[activityIndex]
+    if (!activity) return
+    
+    const activityId = activity.id || -activityIndex - 1
+    
+    setActivitySlides(prev => {
+      const activitySlidesList = [...(prev[activityId] || [])]
+      activitySlidesList[slideIndex] = { ...activitySlidesList[slideIndex], ...data }
+      
+      return {
+        ...prev,
+        [activityId]: activitySlidesList
+      }
+    })
+  }
+  
+  const handleRemoveSlide = (activityIndex: number, slideIndex: number) => {
+    const activity = activities[activityIndex]
+    if (!activity) return
+    
+    const activityId = activity.id || -activityIndex - 1
+    
+    setActivitySlides(prev => {
+      const activitySlidesList = (prev[activityId] || []).filter((_, i) => i !== slideIndex)
+      
+      return {
+        ...prev,
+        [activityId]: activitySlidesList
+      }
     })
     
-    if (currentSlideIndex === index) {
-      setCurrentSlideIndex(-1)
-    } else if (currentSlideIndex > index) {
-      setCurrentSlideIndex(currentSlideIndex - 1)
+    if (editingSlideIndex === slideIndex) {
+      setEditingSlideIndex(null)
+    } else if (editingSlideIndex !== null && editingSlideIndex > slideIndex) {
+      setEditingSlideIndex(editingSlideIndex - 1)
     }
   }
   
-  const handleSave = () => {
-    if (!activityData.title || !activityData.start_time || !activityData.end_time) {
-      setCurrentStep("details")
-      return
-    }
-    
-    onSave(activityData as AgendaItem, slidesList)
-  }
-  
-  const getDefaultContentForType = (type: SlideType): Record<string, unknown> => {
+  const getDefaultContentForType = (type: SlideType, activity: Partial<AgendaItem>): Record<string, unknown> => {
     switch (type) {
       case "poll":
         return { question: "Your question here?", options: ["Option 1", "Option 2", "Option 3"] }
@@ -120,7 +189,7 @@ export default function ActivityBuilder({
       case "rating":
         return { question: "How would you rate this session?", maxRating: 5 }
       case "checkin":
-        return { location: activityData.location || "Event location" }
+        return { location: activity.location || "Event location" }
       case "selfie":
         return { prompt: "Take a selfie at the event!" }
       case "speaker":
@@ -130,252 +199,354 @@ export default function ActivityBuilder({
     }
   }
   
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
+  const handleSubmit = () => {
+    // Filter out empty activities
+    const validActivities = activities.filter(a => a.title && a.start_time && a.end_time)
+    
+    if (validActivities.length === 0) {
+      return
+    }
+    
+    // If we only have one activity (editing mode), submit directly
+    if (agendaItem && validActivities.length === 1) {
+      const activity = validActivities[0]
+      const activityId = activity.id || -1
+      onSave(activity as AgendaItem, activitySlides[activityId] || [])
+      return
+    }
+    
+    // TODO: Handle saving multiple activities if we implement that
+    alert("Multiple activities not implemented yet")
+  }
+  
+  const formatTime = (timeString?: string) => {
+    if (!timeString) return ""
+    try {
+      return format(parseISO(timeString), "h:mm a")
+    } catch (e) {
+      return timeString
+    }
+  }
+  
+  const getSlideTypeTag = (type: SlideType) => {
+    switch (type) {
+      case "poll":
+        return "Polls"
+      case "quiz":
+        return "Quiz"
+      case "qa":
+        return "Q&A"
+      case "rating":
+        return "Rating"
+      case "checkin":
+        return "Check-in"
+      case "selfie":
+        return "Selfie"
+      case "speaker":
+        return "Speaker"
+      default:
+        return type
+    }
   }
   
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">
-          {agendaItem ? "Edit Activity" : "Create New Activity"}
-        </h2>
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            variant={currentStep === "details" ? "default" : "outline"}
-            onClick={() => setCurrentStep("details")}
-          >
-            Details
-          </Button>
-          <Button 
-            variant={currentStep === "slides" ? "default" : "outline"}
-            onClick={() => setCurrentStep("slides")}
-          >
-            Slides
-          </Button>
+    <div className="space-y-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Activity timeline */}
+        <div className="space-y-4">
+          {activities.map((activity, activityIndex) => (
+            <div key={activityIndex} className="relative">
+              <div className="flex">
+                {/* Time column */}
+                <div className="w-24 text-right pr-4 pt-8 flex-shrink-0">
+                  {editingActivityIndex === activityIndex ? (
+                    <Input
+                      ref={newTimeInputRef}
+                      type="time"
+                      value={activity.start_time ? format(new Date(activity.start_time), "HH:mm") : ""}
+                      onChange={(e) => {
+                        // Extract time from the input and combine with the date from start_time
+                        const timeValue = e.target.value
+                        if (!timeValue) return
+                        
+                        const [hours, minutes] = timeValue.split(':').map(Number)
+                        const date = activity.start_time ? new Date(activity.start_time) : new Date()
+                        date.setHours(hours, minutes)
+                        
+                        handleActivityChange(activityIndex, 'start_time', format(date, "yyyy-MM-dd'T'HH:mm"))
+                      }}
+                      className="w-full"
+                    />
+                  ) : (
+                    <div className="text-gray-600">{formatTime(activity.start_time)}</div>
+                  )}
+                </div>
+                
+                {/* Activity content */}
+                <div className="flex-1">
+                  <Card 
+                    className={`w-full border-0 bg-gray-100 dark:bg-gray-800 ${
+                      expandedActivity === activityIndex ? 'pb-4' : ''
+                    }`}
+                  >
+                    <CardContent className="p-4">
+                      <div 
+                        className="flex items-start cursor-pointer"
+                        onClick={() => {
+                          if (editingActivityIndex !== activityIndex) {
+                            toggleExpandActivity(activityIndex)
+                          }
+                        }}
+                      >
+                        <div className="flex-1">
+                          {editingActivityIndex === activityIndex ? (
+                            <div className="space-y-4">
+                              <Input 
+                                value={activity.title || ""}
+                                onChange={(e) => handleActivityChange(activityIndex, 'title', e.target.value)}
+                                placeholder="Activity title"
+                                className="text-lg font-medium border-0 border-b bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                              />
+                              <div className="flex gap-4">
+                                <div className="w-1/2">
+                                  <Label htmlFor={`activity-start-${activityIndex}`}>Start Time</Label>
+                                  <Input
+                                    id={`activity-start-${activityIndex}`}
+                                    type="datetime-local"
+                                    value={activity.start_time || ""}
+                                    onChange={(e) => handleActivityChange(activityIndex, 'start_time', e.target.value)}
+                                  />
+                                </div>
+                                <div className="w-1/2">
+                                  <Label htmlFor={`activity-end-${activityIndex}`}>End Time</Label>
+                                  <Input
+                                    id={`activity-end-${activityIndex}`}
+                                    type="datetime-local"
+                                    value={activity.end_time || ""}
+                                    onChange={(e) => handleActivityChange(activityIndex, 'end_time', e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <Label htmlFor={`activity-location-${activityIndex}`}>Location</Label>
+                                <Input
+                                  id={`activity-location-${activityIndex}`}
+                                  value={activity.location || ""}
+                                  onChange={(e) => handleActivityChange(activityIndex, 'location', e.target.value)}
+                                  placeholder="Location"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`activity-description-${activityIndex}`}>Description</Label>
+                                <Textarea
+                                  id={`activity-description-${activityIndex}`}
+                                  value={activity.description || ""}
+                                  onChange={(e) => handleActivityChange(activityIndex, 'description', e.target.value)}
+                                  placeholder="Description"
+                                  rows={3}
+                                />
+                              </div>
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setEditingActivityIndex(null)}
+                                >
+                                  Done
+                                </Button>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={() => handleRemoveActivity(activityIndex)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="text-lg font-medium">
+                                {activity.title || "Untitled Activity"}
+                              </div>
+                              
+                              {/* Slide types as tags */}
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {activity.id && activitySlides[activity.id]?.map((slide, i) => (
+                                  <div 
+                                    key={i}
+                                    className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm"
+                                  >
+                                    {getSlideTypeTag(slide.slide_type)}
+                                  </div>
+                                ))}
+                                {!activity.id && activitySlides[-activityIndex - 1]?.map((slide, i) => (
+                                  <div 
+                                    key={i}
+                                    className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm"
+                                  >
+                                    {getSlideTypeTag(slide.slide_type)}
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center">
+                          {editingActivityIndex !== activityIndex && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setEditingActivityIndex(activityIndex)
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleExpandActivity(activityIndex)
+                            }}
+                          >
+                            {expandedActivity === activityIndex ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Expanded content for slides */}
+                      {expandedActivity === activityIndex && (
+                        <div className="mt-4 pl-6 border-l-2 border-gray-200 dark:border-gray-700">
+                          <div className="space-y-3">
+                            {/* List existing slides */}
+                            {activity.id && activitySlides[activity.id]?.map((slide, slideIndex) => (
+                              <div key={slideIndex} className="flex items-center justify-between group">
+                                <div 
+                                  className="flex-1 p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded cursor-pointer"
+                                  onClick={() => setEditingSlideIndex(slideIndex)}
+                                >
+                                  <div className="font-medium">{slide.title}</div>
+                                  <div className="text-sm text-gray-500 flex items-center">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    {slide.duration}s
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="opacity-0 group-hover:opacity-100"
+                                  onClick={() => handleRemoveSlide(activityIndex, slideIndex)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                            {!activity.id && activitySlides[-activityIndex - 1]?.map((slide, slideIndex) => (
+                              <div key={slideIndex} className="flex items-center justify-between group">
+                                <div 
+                                  className="flex-1 p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded cursor-pointer"
+                                  onClick={() => setEditingSlideIndex(slideIndex)}
+                                >
+                                  <div className="font-medium">{slide.title}</div>
+                                  <div className="text-sm text-gray-500 flex items-center">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    {slide.duration}s
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="opacity-0 group-hover:opacity-100"
+                                  onClick={() => handleRemoveSlide(activityIndex, slideIndex)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                            
+                            {/* Add slide button */}
+                            <div className="flex items-center justify-between">
+                              <Select onValueChange={(value) => handleAddSlide(activityIndex, value as SlideType)}>
+                                <SelectTrigger className="w-[220px]">
+                                  <SelectValue placeholder="Add a slide" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="poll">Poll Slide</SelectItem>
+                                  <SelectItem value="quiz">Quiz Slide</SelectItem>
+                                  <SelectItem value="qa">Q&A Slide</SelectItem>
+                                  <SelectItem value="rating">Rating Slide</SelectItem>
+                                  <SelectItem value="checkin">Check-in Slide</SelectItem>
+                                  <SelectItem value="selfie">Selfie Slide</SelectItem>
+                                  <SelectItem value="speaker">Speaker Slide</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            {/* Edit slide form */}
+                            {editingSlideIndex !== null && (
+                              <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded border">
+                                {activity.id && activitySlides[activity.id]?.[editingSlideIndex] && (
+                                  <SlideEditor
+                                    slide={activitySlides[activity.id][editingSlideIndex]}
+                                    onChange={(data) => handleUpdateSlide(activityIndex, editingSlideIndex, data)}
+                                  />
+                                )}
+                                {!activity.id && activitySlides[-activityIndex - 1]?.[editingSlideIndex] && (
+                                  <SlideEditor
+                                    slide={activitySlides[-activityIndex - 1][editingSlideIndex]}
+                                    onChange={(data) => handleUpdateSlide(activityIndex, editingSlideIndex, data)}
+                                  />
+                                )}
+                                <div className="flex justify-end mt-4">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => setEditingSlideIndex(null)}
+                                  >
+                                    Done
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {/* Add activity button (centered with plus icon) */}
+          <div className="flex justify-center mt-8">
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-full w-12 h-12 p-0"
+              onClick={handleAddActivity}
+            >
+              <Plus className="h-6 w-6" />
+            </Button>
+          </div>
         </div>
       </div>
       
-      {currentStep === "details" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                name="title"
-                value={activityData.title}
-                onChange={handleActivityChange}
-                placeholder="Enter activity title"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={activityData.description}
-                onChange={handleActivityChange}
-                placeholder="Enter activity description"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="start_time">Start Time</Label>
-                <Input
-                  id="start_time"
-                  name="start_time"
-                  type="datetime-local"
-                  value={activityData.start_time}
-                  onChange={handleActivityChange}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="end_time">End Time</Label>
-                <Input
-                  id="end_time"
-                  name="end_time"
-                  type="datetime-local"
-                  value={activityData.end_time}
-                  onChange={handleActivityChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                name="location"
-                value={activityData.location}
-                onChange={handleActivityChange}
-                placeholder="Enter location"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="speaker">Speaker</Label>
-              <Input
-                id="speaker"
-                name="speaker"
-                value={activityData.speaker}
-                onChange={handleActivityChange}
-                placeholder="Enter speaker name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="order">Display Order</Label>
-              <Input
-                id="order"
-                name="order"
-                type="number"
-                value={activityData.order?.toString()}
-                onChange={handleActivityChange}
-                placeholder="Enter display order"
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => setCurrentStep("slides")}>
-              Next: Add Slides <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
-      
-      {currentStep === "slides" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Slides Timeline */}
-          <div className="md:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Slides Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {slidesList.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No slides added yet. Add your first slide to get started.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {slidesList.map((slide, index) => (
-                        <div 
-                          key={index}
-                          className={`p-3 border rounded-md cursor-pointer flex items-center justify-between ${
-                            currentSlideIndex === index ? "border-primary bg-primary/10" : "border-border"
-                          }`}
-                          onClick={() => setCurrentSlideIndex(index)}
-                        >
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <div className="font-medium">{slide.title}</div>
-                              <div className="text-xs text-muted-foreground flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {formatDuration(slide.duration)}
-                              </div>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleRemoveSlide(index)
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <div className="pt-4">
-                    <Select onValueChange={(value) => handleAddSlide(value as SlideType)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Add a new slide..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="poll">Poll Slide</SelectItem>
-                        <SelectItem value="quiz">Quiz Slide</SelectItem>
-                        <SelectItem value="qa">Q&A Slide</SelectItem>
-                        <SelectItem value="rating">Rating Slide</SelectItem>
-                        <SelectItem value="checkin">Check-in Slide</SelectItem>
-                        <SelectItem value="selfie">Selfie Slide</SelectItem>
-                        <SelectItem value="speaker">Speaker Slide</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Slide Editor */}
-          <div className="md:col-span-2">
-            {currentSlideIndex >= 0 && currentSlideIndex < slidesList.length ? (
-              <SlideEditor 
-                slide={slidesList[currentSlideIndex]}
-                onChange={(data) => handleUpdateSlide(currentSlideIndex, data)}
-              />
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center min-h-[400px] text-center">
-                  <PlusCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-medium mb-2">No Slide Selected</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Select a slide from the timeline or add a new one to start editing
-                  </p>
-                  <Select onValueChange={(value) => handleAddSlide(value as SlideType)}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Add a new slide..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="poll">Poll Slide</SelectItem>
-                      <SelectItem value="quiz">Quiz Slide</SelectItem>
-                      <SelectItem value="qa">Q&A Slide</SelectItem>
-                      <SelectItem value="rating">Rating Slide</SelectItem>
-                      <SelectItem value="checkin">Check-in Slide</SelectItem>
-                      <SelectItem value="selfie">Selfie Slide</SelectItem>
-                      <SelectItem value="speaker">Speaker Slide</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      )}
-      
-      <div className="flex justify-between">
-        {currentStep === "slides" && (
-          <Button variant="outline" onClick={() => setCurrentStep("details")}>
-            <ChevronLeft className="mr-2 h-4 w-4" /> Back to Details
-          </Button>
-        )}
-        
-        <Button 
-          onClick={handleSave} 
-          disabled={isSubmitting || !activityData.title || !activityData.start_time || !activityData.end_time}
+      {/* Save button */}
+      <div className="flex justify-end mt-8">
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting || activities.length === 0 || activities.some(a => !a.title || !a.start_time || !a.end_time)}
         >
-          {isSubmitting ? "Saving..." : "Save Activity"}
+          {isSubmitting ? "Saving..." : "Save Activities"}
         </Button>
       </div>
     </div>
