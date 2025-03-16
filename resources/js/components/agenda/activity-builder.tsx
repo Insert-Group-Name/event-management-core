@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle, Clock, X, Plus, ChevronDown, ChevronRight } from "lucide-react"
+import { PlusCircle, Clock, X, Plus, ChevronDown, ChevronRight, AlertCircle } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { type AgendaItem } from "@/types/agenda-item"
 import { type Slide, type SlideType, type CreateSlideData } from "@/types/agenda-slide"
@@ -47,6 +47,7 @@ export default function ActivityBuilder({
   const [editingSlideIndex, setEditingSlideIndex] = useState<number | null>(null)
   const [editingActivityIndex, setEditingActivityIndex] = useState<number | null>(null)
   const newTimeInputRef = useRef<HTMLInputElement>(null)
+  const [showValidationErrors, setShowValidationErrors] = useState(false)
   
   const handleActivityChange = (index: number, field: string, value: any) => {
     setActivities(prev => {
@@ -249,8 +250,60 @@ export default function ActivityBuilder({
     }
   }
   
+  // Check if activity has validation errors
+  const activityHasErrors = (activity: Partial<AgendaItem>) => {
+    return !activity.title || !activity.start_time || !activity.end_time
+  }
+  
+  // Get specific validation errors for an activity
+  const getActivityErrors = (activity: Partial<AgendaItem>) => {
+    const errors: string[] = []
+    
+    if (!activity.title) errors.push('Title is required')
+    if (!activity.start_time) errors.push('Start time is required')
+    if (!activity.end_time) errors.push('End time is required')
+    
+    return errors
+  }
+  
+  // Check if button should be disabled
+  const isSaveButtonDisabled = isSubmitting || 
+    activities.length === 0 || 
+    activities.some(a => activityHasErrors(a))
+  
+  // Handle attempted save when validation fails
+  const handleAttemptSave = () => {
+    if (isSaveButtonDisabled) {
+      setShowValidationErrors(true)
+      
+      // Find the first activity with errors and expand/edit it
+      const firstErrorIndex = activities.findIndex(activityHasErrors)
+      if (firstErrorIndex !== -1) {
+        setExpandedActivity(firstErrorIndex)
+        setEditingActivityIndex(firstErrorIndex)
+      }
+    } else {
+      handleSubmit()
+    }
+  }
+  
   return (
     <div className="space-y-4">
+      {/* Show validation message at top when there are errors */}
+      {showValidationErrors && isSaveButtonDisabled && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-md flex items-start gap-2">
+          <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-medium text-red-600 dark:text-red-400">Unable to save</p>
+            <p className="text-sm text-red-600/90 dark:text-red-400/90">
+              {activities.length === 0 
+                ? 'Please add at least one activity.' 
+                : 'Please fill in all required fields (title, start time, end time).'}
+            </p>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-3xl mx-auto">
         {/* Activity timeline */}
         <div className="space-y-4">
@@ -260,23 +313,28 @@ export default function ActivityBuilder({
                 {/* Time column */}
                 <div className="w-24 text-right pr-4 pt-8 flex-shrink-0">
                   {editingActivityIndex === activityIndex ? (
-                    <Input
-                      ref={newTimeInputRef}
-                      type="time"
-                      value={activity.start_time ? format(new Date(activity.start_time), "HH:mm") : ""}
-                      onChange={(e) => {
-                        // Extract time from the input and combine with the date from start_time
-                        const timeValue = e.target.value
-                        if (!timeValue) return
-                        
-                        const [hours, minutes] = timeValue.split(':').map(Number)
-                        const date = activity.start_time ? new Date(activity.start_time) : new Date()
-                        date.setHours(hours, minutes)
-                        
-                        handleActivityChange(activityIndex, 'start_time', format(date, "yyyy-MM-dd'T'HH:mm"))
-                      }}
-                      className="w-full"
-                    />
+                    <div className="space-y-1">
+                      <Input
+                        ref={newTimeInputRef}
+                        type="time"
+                        value={activity.start_time ? format(new Date(activity.start_time), "HH:mm") : ""}
+                        onChange={(e) => {
+                          // Extract time from the input and combine with the date from start_time
+                          const timeValue = e.target.value
+                          if (!timeValue) return
+                          
+                          const [hours, minutes] = timeValue.split(':').map(Number)
+                          const date = activity.start_time ? new Date(activity.start_time) : new Date()
+                          date.setHours(hours, minutes)
+                          
+                          handleActivityChange(activityIndex, 'start_time', format(date, "yyyy-MM-dd'T'HH:mm"))
+                        }}
+                        className={`w-full ${showValidationErrors && !activity.start_time ? 'border-red-500 focus:border-red-500' : ''}`}
+                      />
+                      {showValidationErrors && !activity.start_time && (
+                        <p className="text-xs text-red-500">Required</p>
+                      )}
+                    </div>
                   ) : (
                     <div className="text-gray-600">{formatTime(activity.start_time)}</div>
                   )}
@@ -287,7 +345,7 @@ export default function ActivityBuilder({
                   <Card 
                     className={`w-full border-0 bg-gray-100 dark:bg-gray-800 ${
                       expandedActivity === activityIndex ? 'pb-4' : ''
-                    }`}
+                    } ${showValidationErrors && activityHasErrors(activity) && 'border-l-2 border-l-red-500'}`}
                   >
                     <CardContent className="p-4">
                       <div 
@@ -301,30 +359,45 @@ export default function ActivityBuilder({
                         <div className="flex-1">
                           {editingActivityIndex === activityIndex ? (
                             <div className="space-y-4">
-                              <Input 
-                                value={activity.title || ""}
-                                onChange={(e) => handleActivityChange(activityIndex, 'title', e.target.value)}
-                                placeholder="Activity title"
-                                className="text-lg font-medium border-0 border-b bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                              />
+                              <div className="space-y-1">
+                                <Input 
+                                  value={activity.title || ""}
+                                  onChange={(e) => handleActivityChange(activityIndex, 'title', e.target.value)}
+                                  placeholder="Activity title"
+                                  className={`text-lg font-medium border-0 border-b bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0 ${
+                                    showValidationErrors && !activity.title ? 'border-red-500 focus:border-red-500' : ''
+                                  }`}
+                                />
+                                {showValidationErrors && !activity.title && (
+                                  <p className="text-xs text-red-500">Title is required</p>
+                                )}
+                              </div>
                               <div className="flex gap-4">
-                                <div className="w-1/2">
+                                <div className="w-1/2 space-y-1">
                                   <Label htmlFor={`activity-start-${activityIndex}`}>Start Time</Label>
                                   <Input
                                     id={`activity-start-${activityIndex}`}
                                     type="datetime-local"
                                     value={activity.start_time || ""}
                                     onChange={(e) => handleActivityChange(activityIndex, 'start_time', e.target.value)}
+                                    className={showValidationErrors && !activity.start_time ? 'border-red-500 focus:border-red-500' : ''}
                                   />
+                                  {showValidationErrors && !activity.start_time && (
+                                    <p className="text-xs text-red-500">Start time is required</p>
+                                  )}
                                 </div>
-                                <div className="w-1/2">
+                                <div className="w-1/2 space-y-1">
                                   <Label htmlFor={`activity-end-${activityIndex}`}>End Time</Label>
                                   <Input
                                     id={`activity-end-${activityIndex}`}
                                     type="datetime-local"
                                     value={activity.end_time || ""}
                                     onChange={(e) => handleActivityChange(activityIndex, 'end_time', e.target.value)}
+                                    className={showValidationErrors && !activity.end_time ? 'border-red-500 focus:border-red-500' : ''}
                                   />
+                                  {showValidationErrors && !activity.end_time && (
+                                    <p className="text-xs text-red-500">End time is required</p>
+                                  )}
                                 </div>
                               </div>
                               <div>
@@ -365,8 +438,16 @@ export default function ActivityBuilder({
                             </div>
                           ) : (
                             <>
-                              <div className="text-lg font-medium">
-                                {activity.title || "Untitled Activity"}
+                              <div className="flex items-center">
+                                <div className="text-lg font-medium">
+                                  {activity.title || "Untitled Activity"}
+                                </div>
+                                {showValidationErrors && activityHasErrors(activity) && (
+                                  <div className="ml-2 text-red-500 flex items-center">
+                                    <AlertCircle className="h-4 w-4 mr-1" />
+                                    <span className="text-xs">Missing required fields</span>
+                                  </div>
+                                )}
                               </div>
                               
                               {/* Slide types as tags */}
@@ -526,7 +607,7 @@ export default function ActivityBuilder({
             </div>
           ))}
           
-          {/* Add activity button (centered with plus icon) */}
+          {/* Add activity button */}
           <div className="flex justify-center mt-8">
             <Button
               variant="outline"
@@ -543,8 +624,8 @@ export default function ActivityBuilder({
       {/* Save button */}
       <div className="flex justify-end mt-8">
         <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting || activities.length === 0 || activities.some(a => !a.title || !a.start_time || !a.end_time)}
+          onClick={handleAttemptSave}
+          disabled={isSubmitting}
         >
           {isSubmitting ? "Saving..." : "Save Activities"}
         </Button>
