@@ -270,15 +270,43 @@ class EventController extends Controller
             $query->orderBy('start_date');
         }]);
 
-        // Transform the data into the format expected by the attendee view
+        // Transform the data into the format expected by the public view
+        $eventStartDate = date('c', strtotime($event->date));
+        
+        // Create a sample agenda similar to what's used in the public-view component
+        $agenda = [
+            'id' => (string)$event->id,
+            'title' => $event->name,
+            'date' => date('c', strtotime($event->date)), // ISO8601 format for frontend compatibility
+            'activities' => $event->agendaItems->map(function ($item) {
+                // Generate slides for this activity
+                $slides = $this->generateExampleSlides($item);
+                $speakers = $this->getExampleSpeakers($item);
+                
+                return [
+                    'id' => (string)$item->id,
+                    'title' => $item->title,
+                    'description' => $item->description ?? 'No description available',
+                    'startTime' => date('c', strtotime($item->start_date)),
+                    'endTime' => date('c', strtotime($item->end_date)),
+                    'type' => $item->type ?? 'session',
+                    'location' => $item->location ?? 'Main Hall',
+                    'slides' => $slides,
+                    'speakers' => $speakers,
+                ];
+            })->toArray(),
+        ];
+
+        // Pass data to the frontend
         return Inertia::render('events/public-view', [
             'event' => [
                 'id' => $event->id,
                 'name' => $event->name,
                 'description' => $event->description,
-                'start_date' => $event->date,
-                'end_date' => $event->end_date,
+                'start_date' => date('c', strtotime($event->date)),
+                'end_date' => date('c', strtotime($event->end_date)),
                 'location' => $event->location ?? 'TBD',
+                'agenda' => $agenda
             ],
         ]);
     }

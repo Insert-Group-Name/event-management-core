@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Clock, MapPin, RotateCcw, Play } from "lucide-react"
-import { format, addMinutes, isBefore, isAfter } from "date-fns"
+import { format, isBefore, isAfter } from "date-fns"
 import EventStory from "./event-story"
 import type { Activity, EventAgenda, Speaker, Slide } from "@/types/event-types"
 import { Slider } from "@/components/ui/slider"
@@ -163,24 +163,26 @@ function DevTimeControls({ currentTime, setCurrentTime, eventStart, openStory }:
 }
 
 // Update the Page component to use the DevTimeControls
-export default function Page() {
-  const [showStory, setShowStory] = useState(true)
+interface PageProps {
+  event: {
+    id: number;
+    name: string;
+    description: string;
+    start_date: string;
+    end_date: string;
+    location: string;
+    agenda: EventAgenda;
+  };
+}
+
+export default function Page({ event }: PageProps) {
+  const [showStory, setShowStory] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
 
-  // Create a sample event agenda
-  const eventStart = new Date()
-  eventStart.setHours(9, 0, 0, 0) // Set to 9:00 AM today
-
-  // Update the current time every minute - REMOVE THIS as it's now handled by DevTimeControls
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentTime(new Date())
-  //   }, 60000) // Update every minute
-
-  //   return () => clearInterval(interval)
-  // }, [])
-
-  // Sample speakers
+  // Create a sample event agenda or use the provided one
+  const eventStart = new Date(event.start_date)
+  
+  // Sample speakers for example data
   const speakers: Speaker[] = [
     {
       id: "speaker-1",
@@ -381,110 +383,45 @@ export default function Page() {
     }
   }
 
-  // Create a sample agenda with activities throughout the day
-  const agenda: EventAgenda = {
-    id: "event-1",
-    title: "Tech Innovation Summit 2025",
-    date: eventStart,
-    activities: [
-      createActivity(
-        "activity-1",
-        "Welcome & Opening Remarks",
-        "Join us for the official opening of the Tech Innovation Summit 2025.",
-        eventStart,
-        30,
-        "keynote",
-        "Main Hall",
-        ["speaker-1"],
-      ),
-      createActivity(
-        "activity-2",
-        "Coffee Break",
-        "Grab a coffee and network with other attendees.",
-        addMinutes(eventStart, 30),
-        15,
-        "break",
-        "Lobby",
-      ),
-      createActivity(
-        "activity-3",
-        "Cloud Infrastructure at Scale",
-        "Learn how to build and maintain cloud infrastructure that can handle millions of users.",
-        addMinutes(eventStart, 45),
-        60,
-        "session",
-        "Room A",
-        ["speaker-3"],
-      ),
-      createActivity(
-        "activity-4",
-        "UX Design Workshop",
-        "Hands-on workshop exploring the latest trends in user experience design.",
-        addMinutes(eventStart, 45),
-        60,
-        "workshop",
-        "Room B",
-        ["speaker-2"],
-      ),
-      createActivity(
-        "activity-5",
-        "Networking Lunch",
-        "Connect with peers over lunch and discuss the morning sessions.",
-        addMinutes(eventStart, 105),
-        60,
-        "networking",
-        "Dining Hall",
-      ),
-      createActivity(
-        "activity-6",
-        "AI in Product Development",
-        "Discover how artificial intelligence is transforming product development.",
-        addMinutes(eventStart, 165),
-        60,
-        "session",
-        "Room A",
-        ["speaker-1"],
-      ),
-      createActivity(
-        "activity-7",
-        "Scaling Teams Workshop",
-        "Practical strategies for growing and managing engineering teams.",
-        addMinutes(eventStart, 165),
-        60,
-        "workshop",
-        "Room B",
-        ["speaker-3"],
-      ),
-      createActivity(
-        "activity-8",
-        "Afternoon Break",
-        "Refresh with snacks and beverages.",
-        addMinutes(eventStart, 225),
-        15,
-        "break",
-        "Lobby",
-      ),
-      createActivity(
-        "activity-9",
-        "Future of Tech Panel",
-        "Industry leaders discuss emerging technologies and future trends.",
-        addMinutes(eventStart, 240),
-        60,
-        "session",
-        "Main Hall",
-        ["speaker-1", "speaker-2", "speaker-3"],
-      ),
-      createActivity(
-        "activity-10",
-        "Closing Remarks & Networking Reception",
-        "Wrap up the day with final thoughts and continue conversations over drinks.",
-        addMinutes(eventStart, 300),
-        90,
-        "networking",
-        "Main Hall",
-      ),
-    ],
-  }
+  // Sample agenda setup
+  const useRealAgenda = event.agenda && event.agenda.activities && event.agenda.activities.length > 0;
+  
+  // Use either the provided agenda from the server or create a sample one
+  const agenda: EventAgenda = useRealAgenda 
+    ? event.agenda 
+    : {
+        id: String(event.id),
+        title: event.name,
+        date: new Date(event.start_date),
+        activities: [
+          // Create sample activities if needed
+          createActivity(
+            "activity-1",
+            "Welcome & Opening Remarks",
+            "Join us for the official opening of " + event.name,
+            eventStart,
+            30,
+            "keynote",
+            event.location || "Main Hall",
+            ["speaker-1"],
+          ),
+          // Add another activity in the afternoon
+          createActivity(
+            "activity-2",
+            "Interactive Session",
+            "Engage with speakers and other attendees",
+            (() => {
+              const afternoon = new Date(eventStart);
+              afternoon.setHours(14, 0, 0, 0);
+              return afternoon;
+            })(),
+            60,
+            "session",
+            event.location || "Main Room",
+            ["speaker-2"],
+          ),
+        ],
+      };
 
   // Filter activities based on current time for the agenda view
   const pastActivities = agenda.activities.filter(

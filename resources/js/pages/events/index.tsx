@@ -130,7 +130,7 @@ export default function Index({ events }: Props) {
                                                 <Button
                                                     variant="default"
                                                     size="sm"
-                                                    onClick={() => router.visit(`/events/${event.id}/attendee`)}
+                                                    onClick={() => router.visit(`/events/${event.id}/view`)}
                                                 >
                                                     View Out
                                                 </Button>
