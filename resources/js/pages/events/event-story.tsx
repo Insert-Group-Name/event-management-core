@@ -1,7 +1,7 @@
 import type React from "react"
 
 import { useState, useEffect, useMemo } from "react"
-import { Pause, Play, X, Calendar, Clock, Info, Settings } from "lucide-react"
+import { Pause, Play, X, Calendar, Clock, Info, Settings, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { format } from "date-fns"
@@ -258,10 +258,10 @@ export default function EventStory({
 
           <Tabs defaultValue="agenda" className="text-white">
             <TabsList className="bg-black/50 border border-white/20">
-              <TabsTrigger value="agenda" className="data-[state=active]:bg-primary">
+              <TabsTrigger value="agenda" className="data-[state=active]:bg-primary text-white">
                 Agenda
               </TabsTrigger>
-              <TabsTrigger value="speakers" className="data-[state=active]:bg-primary">
+              <TabsTrigger value="speakers" className="data-[state=active]:bg-primary text-white">
                 Speakers
               </TabsTrigger>
             </TabsList>
@@ -274,12 +274,12 @@ export default function EventStory({
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="font-medium text-white">{activity.title}</h3>
-                          <p className="text-sm text-white/70">{activity.description}</p>
+                          <p className="text-sm text-white/90">{activity.description}</p>
                         </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-xs border-white/20 text-white"
+                          className="text-xs border-white/20 text-white bg-black/30 hover:bg-black/50"
                           onClick={() => {
                             // Set time to this activity and close overlay
                             const startTime = activity.startTime instanceof Date 
@@ -292,7 +292,7 @@ export default function EventStory({
                           Jump to
                         </Button>
                       </div>
-                      <div className="flex justify-between text-xs text-white/70 mt-2">
+                      <div className="flex justify-between text-xs text-white/90 mt-2">
                         <span>{activity.location}</span>
                         <span>
                           {format(
@@ -329,8 +329,8 @@ export default function EventStory({
                           </div>
                           <div>
                             <h3 className="font-medium text-white">{speaker.name}</h3>
-                            <p className="text-sm text-white/70">{speaker.title}</p>
-                            <p className="text-xs text-white/50">{speaker.company}</p>
+                            <p className="text-sm text-white/90">{speaker.title}</p>
+                            <p className="text-xs text-white/80">{speaker.company}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -350,7 +350,7 @@ export default function EventStory({
       <div className="fixed inset-x-0 bottom-0 bg-black/90 p-4 z-50 border-t border-white/20">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-2 text-white/70" />
+            <Clock className="h-4 w-4 mr-2 text-white" />
             <span className="text-white font-mono">{format(currentTime, "HH:mm:ss")}</span>
           </div>
           <Button variant="ghost" size="icon" className="text-white" onClick={() => setShowTimeControls(false)}>
@@ -359,39 +359,39 @@ export default function EventStory({
         </div>
 
         <div className="grid grid-cols-4 gap-2 mb-4">
-          <Button size="sm" variant="outline" className="text-white border-white/20" onClick={() => jumpToTime(9, 0)}>
+          <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10" onClick={() => jumpToTime(9, 0)}>
             9:00 AM
           </Button>
-          <Button size="sm" variant="outline" className="text-white border-white/20" onClick={() => jumpToTime(10, 30)}>
+          <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10" onClick={() => jumpToTime(10, 30)}>
             10:30 AM
           </Button>
-          <Button size="sm" variant="outline" className="text-white border-white/20" onClick={() => jumpToTime(12, 0)}>
+          <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10" onClick={() => jumpToTime(12, 0)}>
             12:00 PM
           </Button>
-          <Button size="sm" variant="outline" className="text-white border-white/20" onClick={() => jumpToTime(14, 0)}>
+          <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10" onClick={() => jumpToTime(14, 0)}>
             2:00 PM
           </Button>
         </div>
 
         <div className="flex justify-between gap-2">
-          <Button size="sm" variant="outline" className="text-white border-white/20" onClick={() => addTime(-15)}>
+          <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10" onClick={() => addTime(-15)}>
             -15 min
           </Button>
-          <Button size="sm" variant="outline" className="text-white border-white/20" onClick={() => addTime(-5)}>
+          <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10" onClick={() => addTime(-5)}>
             -5 min
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="text-white border-white/20"
+            className="text-white border-white/20 hover:bg-white/10"
             onClick={() => setCurrentTime(new Date())}
           >
             Now
           </Button>
-          <Button size="sm" variant="outline" className="text-white border-white/20" onClick={() => addTime(5)}>
+          <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10" onClick={() => addTime(5)}>
             +5 min
           </Button>
-          <Button size="sm" variant="outline" className="text-white border-white/20" onClick={() => addTime(15)}>
+          <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10" onClick={() => addTime(15)}>
             +15 min
           </Button>
         </div>
@@ -488,26 +488,26 @@ export default function EventStory({
       {/* Event info */}
       <div className="bg-black/80 p-2 flex items-center justify-between">
         <div className="flex items-center">
-          <Calendar className="h-4 w-4 mr-2 text-white/70" />
-          <span className="text-sm text-white/70">{format(agenda.date, "MMMM d, yyyy")}</span>
+          <Calendar className="h-4 w-4 mr-2 text-white" />
+          <span className="text-sm text-white">{format(agenda.date, "MMMM d, yyyy")}</span>
         </div>
         <div className="flex items-center">
-          <Clock className="h-4 w-4 mr-2 text-white/70" />
-          <span className="text-sm text-white/70">{format(currentTime, "h:mm a")}</span>
+          <Clock className="h-4 w-4 mr-2 text-white" />
+          <span className="text-sm text-white">{format(currentTime, "h:mm a")}</span>
         </div>
       </div>
 
       {/* Activity timeline */}
-      <div className="flex overflow-x-auto gap-1 p-2 bg-black/60">
+      <div className="flex overflow-x-auto gap-1 p-2 bg-black/70">
         {availableActivities.map((activity, index) => (
           <Button
             key={activity.id}
             variant={index === currentActivityIndex ? "default" : "outline"}
             size="sm"
-            className={`text-xs whitespace-nowrap ${
+            className={`text-xs whitespace-nowrap font-medium ${
               index === currentActivityIndex
                 ? "bg-primary text-primary-foreground"
-                : "bg-black/30 text-white/70 border-white/20"
+                : "bg-black/30 text-white border-white/30 hover:bg-black/50"
             }`}
             onClick={() => {
               setCurrentActivityIndex(index)
@@ -523,20 +523,21 @@ export default function EventStory({
       </div>
 
       {/* Progress bars for current activity slides */}
-      <div className="flex gap-1 p-2 z-10 bg-black/40">
+      <div className="flex gap-1 p-2 z-10 bg-black/50">
         {currentActivity.slides.map((_, i) => (
           <Progress
             key={i}
             value={i < currentSlideIndex ? 100 : i === currentSlideIndex ? progress[i] : 0}
-            className="h-1.5 w-full"
+            className={`h-1.5 w-full ${i === currentSlideIndex ? 'bg-gray-800' : 'bg-gray-900'}`}
+            indicatorClassName={`${i <= currentSlideIndex ? 'bg-white' : 'bg-primary'}`}
           />
         ))}
       </div>
 
       {/* Current activity info */}
-      <div className="bg-black/60 p-2">
+      <div className="bg-black/70 p-3">
         <div className="text-sm font-medium text-white">{currentActivity.title}</div>
-        <div className="flex justify-between text-xs text-white/70">
+        <div className="flex justify-between text-xs text-white mt-1">
           <span>{currentActivity.location}</span>
           <span>
             {format(currentActivity.startTime, "h:mm a")} - {format(currentActivity.endTime, "h:mm a")}
@@ -551,6 +552,7 @@ export default function EventStory({
           size="icon"
           className="text-white hover:bg-black/20 rounded-full"
           onClick={() => setShowEventInfo(true)}
+          aria-label="Show event info"
         >
           <Info size={20} />
         </Button>
@@ -559,6 +561,7 @@ export default function EventStory({
           size="icon"
           className="text-white hover:bg-black/20 rounded-full"
           onClick={() => setShowTimeControls(!showTimeControls)}
+          aria-label="Time controls"
         >
           <Settings size={20} />
         </Button>
@@ -567,15 +570,46 @@ export default function EventStory({
           size="icon"
           className="text-white hover:bg-black/20 rounded-full"
           onClick={() => setIsPaused(!isPaused)}
+          aria-label={isPaused ? "Play" : "Pause"}
         >
           {isPaused ? <Play size={20} /> : <Pause size={20} />}
         </Button>
-        <Button variant="ghost" size="icon" className="text-white hover:bg-black/20 rounded-full" onClick={onClose}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-white hover:bg-black/20 rounded-full" 
+          onClick={onClose}
+          aria-label="Close"
+        >
           <X size={20} />
         </Button>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation with visible arrows */}
+      <div className="absolute inset-y-0 left-0 flex items-center justify-start pl-4 z-20">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="bg-black/30 text-white hover:bg-black/50 rounded-full w-10 h-10"
+          onClick={goToPreviousSlide}
+          aria-label="Previous slide"
+        >
+          <ChevronLeft size={24} />
+        </Button>
+      </div>
+      <div className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 z-20">
+        <Button
+          variant="ghost" 
+          size="icon"
+          className="bg-black/30 text-white hover:bg-black/50 rounded-full w-10 h-10"
+          onClick={goToNextSlide}
+          aria-label="Next slide"
+        >
+          <ChevronRight size={24} />
+        </Button>
+      </div>
+
+      {/* Invisible touch areas for swipe (larger than the buttons) */}
       <div className="absolute inset-y-0 left-0 w-1/5 z-10" onClick={goToPreviousSlide} />
       <div className="absolute inset-y-0 right-0 w-1/5 z-10" onClick={goToNextSlide} />
 
