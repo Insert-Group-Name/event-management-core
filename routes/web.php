@@ -10,10 +10,15 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // // Add a global dashboard route
-    // Route::get('/dashboard', function () {
-    //     return Inertia::render('dashboard');
-    // })->name('dashboard');
+    // Notifications test page
+    Route::get('/notifications', function () {
+        return Inertia::render('events/notifications');
+    })->name('events.notifications');
+    
+    // Echo debug page
+    Route::get('/echo-debug', function () {
+        return Inertia::render('events/echo-debug');
+    })->name('events.echo-debug');
     
     // Event routes
     Route::prefix('events')->group(function () {
@@ -26,6 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{event}/edit', 'edit')->name('events.edit');
             Route::put('/{event}', 'update')->name('events.update');
             Route::delete('/{event}', 'destroy')->name('events.destroy');
+            
+            // Broadcast notification route
+            Route::post('/broadcast-notification', 'broadcastNotification')->name('events.broadcast');
         });
         
         // Event-specific routes
