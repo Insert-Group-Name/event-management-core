@@ -29,6 +29,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Agenda Routes
             Route::prefix('agenda')->controller(AgendaController::class)->name('agenda.')->group(function () {
                 Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{agendaItem}', 'show')->name('show');
+                Route::get('/{agendaItem}/edit', 'edit')->name('edit');
+                Route::put('/{agendaItem}', 'update')->name('update');
+                Route::delete('/{agendaItem}', 'destroy')->name('destroy');
             });
         });
     });
