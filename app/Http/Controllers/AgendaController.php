@@ -56,6 +56,10 @@ class AgendaController extends Controller
             'order' => 'nullable|integer',
         ]);
 
+        // Extract date part from timestamps
+        $validated['start_date'] = date('Y-m-d', strtotime($validated['start_time']));
+        $validated['end_date'] = date('Y-m-d', strtotime($validated['end_time']));
+
         // Create the agenda item
         $agendaItem = $event->agendaItems()->create($validated);
 
@@ -74,11 +78,106 @@ class AgendaController extends Controller
             abort(404);
         }
 
-        // Return Inertia response with agenda item details
-        return Inertia::render('agenda/show', [
+        // Get existing slides for this agenda item from the database
+        // In a real implementation, this would load slides from a slides table
+        // For now, we'll simulate this with example data
+        $slides = $this->getExampleSlides($agendaItem);
+        
+        // Return Inertia response with our new agenda editor component
+        return Inertia::render('agenda/agenda-editor', [
             'event' => $event,
-            'agendaItem' => $agendaItem
+            'agendaItem' => $agendaItem,
+            'slides' => $slides
         ]);
+    }
+
+    /**
+     * Get example slides for the agenda item (temporary placeholder)
+     */
+    private function getExampleSlides(AgendaItem $agendaItem): array
+    {
+        // In a real implementation, this would load from a database
+        // For now, we'll create some example slides based on the activity type
+        
+        $slideTypes = ['poll', 'quiz', 'qa', 'rating', 'checkin', 'selfie', 'speaker'];
+        $slides = [];
+        
+        // Generate a few slides for demonstration
+        $numSlides = rand(1, 3);
+        for ($i = 0; $i < $numSlides; $i++) {
+            $type = $slideTypes[array_rand($slideTypes)];
+            $slides[] = $this->createSlide($agendaItem->id, $i, $type, $agendaItem);
+        }
+        
+        return $slides;
+    }
+
+    /**
+     * Create a slide with type-specific content
+     */
+    private function createSlide($activityId, $order, $type, $agendaItem): array
+    {
+        $slide = [
+            'id' => rand(100, 999),
+            'title' => ucfirst($type) . ' Slide',
+            'duration' => rand(15, 60),
+            'slide_type' => $type,
+            'activity_id' => $activityId,
+            'order' => $order,
+            'created_at' => now()->toISOString(),
+            'updated_at' => now()->toISOString()
+        ];
+        
+        // Add content based on slide type
+        switch ($type) {
+            case 'poll':
+                $slide['content'] = [
+                    'question' => 'What do you think of this session?',
+                    'options' => ['Great!', 'Good', 'Average', 'Need improvement']
+                ];
+                break;
+            
+            case 'quiz':
+                $slide['content'] = [
+                    'question' => 'What technology are we using?',
+                    'options' => ['React', 'Vue', 'Angular', 'Svelte'],
+                    'correctAnswer' => 'React'
+                ];
+                break;
+                
+            case 'qa':
+                $slide['content'] = [
+                    'question' => 'Do you have any questions for the presenter?'
+                ];
+                break;
+                
+            case 'rating':
+                $slide['content'] = [
+                    'question' => 'Rate this session:',
+                    'maxRating' => 5
+                ];
+                break;
+                
+            case 'checkin':
+                $slide['content'] = [
+                    'location' => $agendaItem->location ?? 'Event venue'
+                ];
+                break;
+                
+            case 'selfie':
+                $slide['content'] = [
+                    'prompt' => 'Take a selfie at ' . ($agendaItem->title ?? 'the event') . '!'
+                ];
+                break;
+                
+            case 'speaker':
+                $slide['content'] = [
+                    'speakerId' => 'speaker1'
+                ];
+                break;
+        }
+        
+        return $slide;
     }
 
     /**
@@ -118,6 +217,10 @@ class AgendaController extends Controller
             'speaker' => 'nullable|string|max:255',
             'order' => 'nullable|integer',
         ]);
+
+        // Extract date part from timestamps
+        $validated['start_date'] = date('Y-m-d', strtotime($validated['start_time']));
+        $validated['end_date'] = date('Y-m-d', strtotime($validated['end_time']));
 
         // Update the agenda item
         $agendaItem->update($validated);

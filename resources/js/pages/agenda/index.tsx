@@ -112,6 +112,13 @@ export default function Index({ event, agendaItems }: Props) {
                                                 >
                                                     View
                                                 </Button>
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
+                                                    onClick={() => router.visit(`/events/${event.id}/agenda/${item.id}`)}
+                                                >
+                                                    Slides
+                                                </Button>
                                             </div>
                                         </TableCell>
                                     </TableRow>
