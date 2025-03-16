@@ -16,10 +16,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('events')->controller(EventController::class)->group(function () {
         Route::get('/', 'index');
-    });
 
-    Route::prefix('agenda')->controller(AgendaController::class)->group(function () {
-        Route::get('/', 'index');
+        Route::prefix('/{event}')->scopeBindings()->group(function () {
+            // Agenda Routes
+            Route::prefix('agenda')->controller(AgendaController::class)->group(function () {
+                Route::get('/', 'index');
+            });
+        });
     });
 });
 
