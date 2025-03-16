@@ -17,7 +17,7 @@ class Event extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'title',
         'description',
         'date',
         'end_date',
@@ -30,7 +30,7 @@ class Event extends Model
      *
      * @var array<int, string>
      */
-    protected $appends = ['start_date'];
+    protected $appends = ['start_date', 'name'];
 
     /**
      * The attributes that should be cast.
@@ -43,24 +43,24 @@ class Event extends Model
     ];
 
     /**
-     * Get the event's title (alias for name).
+     * Get the event's name (alias for title).
      *
      * @return string
      */
-    public function getTitleAttribute()
+    public function getNameAttribute()
     {
-        return $this->name;
+        return $this->title;
     }
     
     /**
-     * Set the event's title (alias for name).
+     * Set the event's name (alias for title).
      *
      * @param string $value
      * @return void
      */
-    public function setTitleAttribute($value)
+    public function setNameAttribute($value)
     {
-        $this->attributes['name'] = $value;
+        $this->attributes['title'] = $value;
     }
 
     /**

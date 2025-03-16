@@ -25,7 +25,7 @@ class EventController extends Controller
         // Enable query logging
         DB::enableQueryLog();
         
-        $events = Event::select('id', 'name', 'description', 'date', 'end_date', 'user_id', 'created_at')
+        $events = Event::select('id', 'title', 'description', 'date', 'end_date', 'user_id', 'created_at')
             ->with('user:id,name')
             ->latest('created_at')
             ->paginate(10);
@@ -60,7 +60,7 @@ class EventController extends Controller
         ]);
 
         $event = new Event();
-        $event->name = $validated['name'];
+        $event->title = $validated['name'];
         $event->description = $validated['description'];
         $event->date = $validated['start_date'];
         $event->end_date = $validated['end_date'];
@@ -95,7 +95,7 @@ class EventController extends Controller
         // Transform the data into the format expected by the story view
         $agenda = [
             'id' => (string)$event->id,
-            'title' => $event->name,
+            'title' => $event->title,
             'date' => $event->date,
             'activities' => $event->agendaItems->map(function ($item) {
                 // For demo purposes, create some example slides
@@ -120,7 +120,7 @@ class EventController extends Controller
         return Inertia::render('stories/index', [
             'event' => [
                 'id' => $event->id,
-                'title' => $event->name,
+                'title' => $event->title,
                 'description' => $event->description,
                 'agenda' => $agenda,
             ],
@@ -251,11 +251,11 @@ class EventController extends Controller
             'location' => 'nullable|string|max:255',
         ]);
 
-        $event->name = $validated['name'];
+        $event->title = $validated['name'];
         $event->description = $validated['description'];
         $event->date = $validated['start_date'];
         $event->end_date = $validated['end_date'];
-        $event->location = $validated['location'] ?? $event->location;
+        $event->location = $validated['location'] ?? null;
         $event->save();
 
         return redirect()->route('events.index')
@@ -278,7 +278,7 @@ class EventController extends Controller
         // Create a sample agenda similar to what's used in the public-view component
         $agenda = [
             'id' => (string)$event->id,
-            'title' => $event->name,
+            'title' => $event->title,
             'date' => date('c', strtotime($event->date)), // ISO8601 format for frontend compatibility
             'activities' => $event->agendaItems->map(function ($item) {
                 // Generate slides for this activity
@@ -305,7 +305,7 @@ class EventController extends Controller
         return Inertia::render('events/public-view', [
             'event' => [
                 'id' => $event->id,
-                'name' => $event->name,
+                'title' => $event->title,
                 'description' => $event->description,
                 'start_date' => date('c', strtotime($event->date)),
                 'end_date' => date('c', strtotime($event->end_date)),

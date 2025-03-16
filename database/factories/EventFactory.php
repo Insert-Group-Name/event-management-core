@@ -24,7 +24,7 @@ class EventFactory extends Factory
         );
 
         return [
-            'name' => fake()->sentence(3),
+            'title' => fake()->sentence(3),
             'description' => fake()->paragraph(3),
             'start_date' => $startDate,
             'end_date' => $endDate,
