@@ -17,12 +17,20 @@ class Event extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'title',
         'description',
-        'start_date',
+        'date',
         'end_date',
+        'location',
         'user_id',
     ];
+
+    /**
+     * The attributes that should be appended to arrays.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = ['start_date', 'name'];
 
     /**
      * The attributes that should be cast.
@@ -30,9 +38,30 @@ class Event extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'start_date' => 'datetime',
+        'date' => 'datetime',
         'end_date' => 'datetime',
     ];
+
+    /**
+     * Get the event's name (alias for title).
+     *
+     * @return string
+     */
+    public function getNameAttribute()
+    {
+        return $this->title;
+    }
+    
+    /**
+     * Set the event's name (alias for title).
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setNameAttribute($value)
+    {
+        $this->attributes['title'] = $value;
+    }
 
     /**
      * Get the user that owns the event.
@@ -72,5 +101,26 @@ class Event extends Model
     public function agendaItems(): HasMany
     {
         return $this->hasMany(AgendaItem::class);
+    }
+
+    /**
+     * Get the event's start_date (alias for date).
+     *
+     * @return string
+     */
+    public function getStartDateAttribute()
+    {
+        return $this->date;
+    }
+    
+    /**
+     * Set the event's start_date (alias for date).
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setStartDateAttribute($value)
+    {
+        $this->attributes['date'] = $value;
     }
 }
