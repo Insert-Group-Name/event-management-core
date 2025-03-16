@@ -20,11 +20,6 @@ const mainNavItems: NavItem[] = [
         href: '/events/agenda',
         icon: LayoutGrid,
     },
-    {
-        title: 'Events',
-        href: '/events',
-        icon: Calendar,
-    },
 ];
 
 const footerNavItems: NavItem[] = [

@@ -22,7 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         Route::prefix('/{event}')->name('event.')->scopeBindings()->group(function () {
             
-            Route::get('dashboard', function () {
+            Route::get('/dashboard', function () {
                 return Inertia::render('dashboard');
             })->name('dashboard');
 

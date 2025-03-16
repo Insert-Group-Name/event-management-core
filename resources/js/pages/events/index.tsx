@@ -68,9 +68,9 @@ export default function Index({ events }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <Head title="Events" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+            <div id="events-index" className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 mx-auto w-full max-w-7xl">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-semibold">Events</h1>
                     <Button onClick={() => router.visit('/events/create')}>
@@ -105,6 +105,14 @@ export default function Index({ events }: Props) {
                                     <TableCell>
                                         <div className="flex gap-2">
                                             <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                disabled={isDeleting}
+                                                onClick={() => handleDelete(event.id)}
+                                            >
+                                                Delete
+                                            </Button>
+                                            <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => router.visit(`/events/${event.id}/edit`)}
@@ -112,12 +120,11 @@ export default function Index({ events }: Props) {
                                                 Edit
                                             </Button>
                                             <Button
-                                                variant="destructive"
+                                                variant="outline"
                                                 size="sm"
-                                                disabled={isDeleting}
-                                                onClick={() => handleDelete(event.id)}
+                                                onClick={() => router.visit(`/events/${event.id}/dashboard`)}
                                             >
-                                                Delete
+                                                View
                                             </Button>
                                         </div>
                                     </TableCell>
@@ -154,6 +161,6 @@ export default function Index({ events }: Props) {
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </div>
     );
 }
