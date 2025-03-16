@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\EventController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -13,8 +14,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::prefix('events')->group(function () {
-        Route::get('/', [EventController::class, 'index']);
+    Route::prefix('events')->controller(EventController::class)->group(function () {
+        Route::get('/', 'index');
+    });
+
+    Route::prefix('agenda')->controller(AgendaController::class)->group(function () {
+        Route::get('/', 'index');
     });
 });
 
